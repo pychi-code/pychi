@@ -1,2 +1,3 @@
 # pychi
- Simulation package for nonlinear optics
+
+A Python package for simulating the propagation of optical pulses in nonlinear materials.
