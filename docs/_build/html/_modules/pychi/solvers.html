@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pychi.solvers &mdash; pychi 0.0.1 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> pychi
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pychi.html">pychi package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pychi</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pychi.solvers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pychi.solvers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Feb 18 17:54:20 2022</span>
+
+<span class="sd">@author: voumardt</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numba</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.constants</span> <span class="kn">import</span> <span class="n">c</span>
+<span class="kn">import</span> <span class="nn">time</span> <span class="k">as</span> <span class="nn">timing</span>
+
+
+<div class="viewcode-block" id="Solver"><a class="viewcode-back" href="../../pychi.html#pychi.solvers.Solver">[docs]</a><span class="k">class</span> <span class="nc">Solver</span><span class="p">():</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">z_pts</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">local_error</span><span class="o">=</span><span class="mf">0.00001</span><span class="p">,</span> <span class="n">adaptive_factor</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span>
+                 <span class="n">max_dz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solver class. Provides a stepper which performs integration of the PDE</span>
+<span class="sd">        as well as error control and results saving.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : Model object</span>
+<span class="sd">            Physical model of the problem to be integrated.</span>
+<span class="sd">        z_pts : int, optional</span>
+<span class="sd">            Number of results to keep along the propagation axis. The default is 500.</span>
+<span class="sd">        local_error : float, optional</span>
+<span class="sd">            Tolerated local error. The default is 0.00001.</span>
+<span class="sd">        adaptive_factor : float, optional</span>
+<span class="sd">            Adaptive factor for the step size control. Bigger values lead to</span>
+<span class="sd">            more aggressive step size control. The default is 1.1.</span>
+<span class="sd">        max_dz : float, optional</span>
+<span class="sd">            Maximum step size allowed. Particularly useful when simulating</span>
+<span class="sd">            quasi-phase matched structures. The default is None.</span>
+<span class="sd">        method: string</span>
+<span class="sd">            Method used for integration. Can be RK4IP, ERK4IP or DP5IP.</span>
+<span class="sd">            Default is DP5IP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_pts</span> <span class="o">=</span> <span class="n">z_pts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_error</span> <span class="o">=</span> <span class="n">local_error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_factor</span> <span class="o">=</span> <span class="n">adaptive_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_dz</span> <span class="o">=</span> <span class="n">max_dz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_save</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_pts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_method_name</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_set_method_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to choose an appropriate solver. If a method is not</span>
+<span class="sd">        provided by the user, it  will look into the model used to see if</span>
+<span class="sd">        there is a recommended solver. Otherwise, defaults to the model that</span>
+<span class="sd">        should be mostly used, i.e. DP5IP.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        method : string</span>
+<span class="sd">            Name of the solver.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        string</span>
+<span class="sd">            Name of the solver.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;_recommended_solver&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_recommended_solver</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;DP5IP&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">method</span>
+        
+    <span class="k">def</span> <span class="nf">_compute_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_1</span><span class="p">,</span> <span class="n">field_2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Error estimation for adaptive step size</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field_1 : array</span>
+<span class="sd">            Reference field.</span>
+<span class="sd">        field_2 : array</span>
+<span class="sd">            Test field.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Error estimate between the two fields.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numbanorm</span><span class="p">(</span><span class="n">field_1</span> <span class="o">-</span> <span class="n">field_2</span><span class="p">)</span><span class="o">/</span><span class="n">numbanorm</span><span class="p">(</span><span class="n">field_1</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_dormand_prince_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dormand Prince order 5(4) adaptive scheme in the interaction picture. This</span>
+<span class="sd">        new stepper uses the interaction picture in an embedded scheme of order 5.</span>
+<span class="sd">        Tests have shown it to be up to four times faster than RK4IP.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : array</span>
+<span class="sd">            Current field.</span>
+<span class="sd">        dz : float</span>
+<span class="sd">            Current step size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            New field estimate.</span>
+<span class="sd">        </span>
+<span class="sd">        float</span>
+<span class="sd">            Error estimate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_7</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k_1</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">field</span><span class="p">),</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_k_7</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="n">a_int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="n">k_2</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)),</span> <span class="mi">4</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">k_3</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">40</span> <span class="o">+</span> <span class="mi">9</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">40</span><span class="p">,</span> <span class="o">-</span><span class="mi">7</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">10</span><span class="p">)),</span> <span class="mi">7</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">k_4</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="mi">44</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">45</span> <span class="o">-</span> <span class="mi">56</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">15</span> <span class="o">+</span> <span class="mi">32</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="o">-</span><span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)),</span> <span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">k_5</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="mi">19372</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">6561</span> <span class="o">-</span> <span class="mi">25360</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">2187</span> <span class="o">+</span> <span class="mi">64448</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">6561</span> <span class="o">-</span> <span class="mi">212</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">729</span><span class="p">,</span> <span class="o">-</span><span class="n">dz</span><span class="o">/</span><span class="mi">9</span><span class="p">)),</span> <span class="n">dz</span><span class="o">/</span><span class="mi">9</span><span class="p">)</span>
+        <span class="n">k_6</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="mi">9017</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">3168</span> <span class="o">-</span> <span class="mi">355</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">33</span> <span class="o">+</span> <span class="mi">46732</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">5247</span> <span class="o">+</span> <span class="mi">49</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">176</span> <span class="o">-</span> <span class="mi">5103</span><span class="o">*</span><span class="n">k_5</span><span class="o">/</span><span class="mi">18656</span><span class="p">)</span>
+        <span class="n">sol_5</span> <span class="o">=</span> <span class="n">a_int</span> <span class="o">+</span> <span class="mi">35</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">384</span> <span class="o">+</span> <span class="mi">500</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">1113</span> <span class="o">+</span> <span class="mi">125</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">192</span> <span class="o">-</span> <span class="mi">2187</span><span class="o">*</span><span class="n">k_5</span><span class="o">/</span><span class="mi">6784</span> <span class="o">+</span> <span class="mi">11</span><span class="o">*</span><span class="n">k_6</span><span class="o">/</span><span class="mi">84</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_k_7</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">sol_5</span><span class="p">)</span>
+        <span class="n">sol_4</span> <span class="o">=</span> <span class="n">a_int</span> <span class="o">+</span> <span class="mi">5179</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">57600</span> <span class="o">+</span> <span class="mi">7571</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">16695</span> <span class="o">+</span> <span class="mi">393</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">640</span> <span class="o">-</span> <span class="mi">92097</span><span class="o">*</span><span class="n">k_5</span><span class="o">/</span><span class="mi">339200</span> <span class="o">+</span> <span class="mi">187</span><span class="o">*</span><span class="n">k_6</span><span class="o">/</span><span class="mi">2100</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_7</span><span class="o">/</span><span class="mi">40</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_error</span><span class="p">(</span><span class="n">sol_5</span><span class="p">,</span> <span class="n">sol_4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sol_5</span><span class="p">,</span> <span class="n">error</span>
+    
+    <span class="k">def</span> <span class="nf">_rk546m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Some other Dormand-Prince method that has one less step but does not</span>
+<span class="sd">        leverage the interaction picture and does not have the FSAL property.</span>
+<span class="sd">        Usually worse than the other dormand-prince method.</span>
+<span class="sd">        References:</span>
+<span class="sd">            DOI: 10.1016/0771-050X(80)90013-3</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : array</span>
+<span class="sd">            Current field.</span>
+<span class="sd">        dz : float</span>
+<span class="sd">            Current step size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            New field estimate.</span>
+<span class="sd">        </span>
+<span class="sd">        float</span>
+<span class="sd">            Error estimate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">k_1</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="n">k_2</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span> <span class="o">+</span> <span class="n">k_1</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)),</span> <span class="o">-</span><span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">k_3</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">40</span> <span class="o">+</span> <span class="mi">9</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">40</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">10</span><span class="p">)),</span> <span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">k_4</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">10</span> <span class="o">-</span> <span class="mi">9</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">10</span> <span class="o">+</span> <span class="mi">6</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)),</span> <span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">k_5</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span> <span class="o">+</span> <span class="mi">226</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">729</span> <span class="o">-</span> <span class="mi">25</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">27</span> <span class="o">+</span> <span class="mi">880</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">729</span> <span class="o">+</span> <span class="mi">55</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">729</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">3</span><span class="p">)),</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">k_6</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span>  <span class="o">-</span> <span class="mi">181</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">270</span> <span class="o">+</span> <span class="mi">5</span><span class="o">*</span><span class="n">k_2</span><span class="o">/</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">266</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">297</span> <span class="o">-</span> <span class="mi">91</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">27</span> <span class="o">+</span> <span class="mi">189</span><span class="o">*</span><span class="n">k_5</span><span class="o">/</span><span class="mi">55</span><span class="p">,</span> <span class="n">dz</span><span class="p">)),</span> <span class="o">-</span><span class="n">dz</span><span class="p">)</span>
+        <span class="n">sol_5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span> <span class="o">+</span> <span class="mi">19</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">216</span> <span class="o">+</span> <span class="mi">1000</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">2079</span> <span class="o">-</span> <span class="mi">125</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">216</span> <span class="o">+</span> <span class="mi">81</span><span class="o">*</span><span class="n">k_5</span><span class="o">/</span><span class="mi">88</span> <span class="o">+</span> <span class="mi">5</span><span class="o">*</span><span class="n">k_6</span><span class="o">/</span><span class="mi">56</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="n">sol_4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">dispersion_step</span><span class="p">(</span><span class="n">field</span> <span class="o">+</span> <span class="mi">31</span><span class="o">*</span><span class="n">k_1</span><span class="o">/</span><span class="mi">540</span> <span class="o">+</span> <span class="mi">190</span><span class="o">*</span><span class="n">k_3</span><span class="o">/</span><span class="mi">297</span> <span class="o">-</span> <span class="mi">145</span><span class="o">*</span><span class="n">k_4</span><span class="o">/</span><span class="mi">108</span> <span class="o">+</span> <span class="mi">351</span><span class="o">*</span><span class="n">k_5</span><span class="o">/</span><span class="mi">220</span> <span class="o">+</span> <span class="n">k_6</span><span class="o">/</span><span class="mi">20</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_error</span><span class="p">(</span><span class="n">sol_5</span><span class="p">,</span> <span class="n">sol_4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sol_5</span><span class="p">,</span> <span class="n">error</span>
+    
+    <span class="k">def</span> <span class="nf">_adams_bashforth54_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;To be implemented&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_rk4ip_single_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runge-Kutta order 4 step in the interaction picture (RK4IP)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : array</span>
+<span class="sd">            Current field.</span>
+<span class="sd">        dz : float</span>
+<span class="sd">            Current step size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            New field estimate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dispersion_op</span> <span class="o">=</span> <span class="n">numbaexp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">a_int</span> <span class="o">=</span> <span class="n">dispersion_op</span><span class="o">*</span><span class="n">field</span>
+        <span class="n">k_1</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="n">dispersion_op</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="n">k_2</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">k_3</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_2</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">k_4</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">dispersion_op</span><span class="o">*</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_3</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dispersion_op</span><span class="o">*</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_1</span><span class="o">/</span><span class="mi">6</span> <span class="o">+</span> <span class="n">k_2</span><span class="o">/</span><span class="mi">3</span> <span class="o">+</span> <span class="n">k_3</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">k_4</span><span class="o">/</span><span class="mi">6</span>
+    
+    <span class="k">def</span> <span class="nf">_rk4ip_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runge-Kutta order 4 adaptive scheme in the interaction picture (RK4IP)</span>
+<span class="sd">        with step doubling and combining. Provided for comparison but slower</span>
+<span class="sd">        than the dormand-prince method.</span>
+<span class="sd">        References:</span>
+<span class="sd">            DOI: 10.1109/JLT.2007.909373</span>
+<span class="sd">            DOI: 10.1109/JLT.2009.2021538</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : array</span>
+<span class="sd">            Current field.</span>
+<span class="sd">        dz : float</span>
+<span class="sd">            Current step size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            New field estimate.</span>
+<span class="sd">        </span>
+<span class="sd">        float</span>
+<span class="sd">            Error estimate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sol_single</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk4ip_single_step</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+        <span class="n">sol_double</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk4ip_single_step</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">sol_double</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk4ip_single_step</span><span class="p">(</span><span class="n">sol_double</span><span class="p">,</span> <span class="n">dz</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_error</span><span class="p">(</span><span class="n">sol_double</span><span class="p">,</span> <span class="n">sol_single</span><span class="p">)</span>
+        <span class="n">sol_5</span> <span class="o">=</span> <span class="p">(</span><span class="n">sol_double</span><span class="o">*</span><span class="mi">16</span> <span class="o">-</span> <span class="n">sol_single</span><span class="p">)</span><span class="o">/</span><span class="mi">15</span>
+        <span class="k">return</span> <span class="n">sol_5</span><span class="p">,</span> <span class="n">error</span>
+    
+    <span class="k">def</span> <span class="nf">_erk4ip_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Embedded Runge-Kutta order 4(3) adaptive scheme in the interaction</span>
+<span class="sd">        picture (ERK4IP). Can be faster than DP5IP if accuracy is irrelevant,</span>
+<span class="sd">        for example in SPM only cases. Otherwise, DP5IP performs better.</span>
+<span class="sd">        References:</span>
+<span class="sd">            DOI: 10.1016/j.cpc.2012.12.020</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : array</span>
+<span class="sd">            Current field.</span>
+<span class="sd">        dz : float</span>
+<span class="sd">            Current step size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            New field estimate.</span>
+<span class="sd">        </span>
+<span class="sd">        float</span>
+<span class="sd">            Error estimate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dispersion_op</span> <span class="o">=</span> <span class="n">numbaexp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="n">dz</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">a_int</span> <span class="o">=</span> <span class="n">dispersion_op</span><span class="o">*</span><span class="n">field</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_5</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k_1</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="n">dispersion_op</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k_1</span> <span class="o">=</span> <span class="n">dispersion_op</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_k_5</span>
+        <span class="n">k_2</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">k_3</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_2</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">k_4</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">dispersion_op</span><span class="o">*</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_3</span><span class="p">))</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">dispersion_op</span><span class="o">*</span><span class="p">(</span><span class="n">a_int</span> <span class="o">+</span> <span class="n">k_1</span><span class="o">/</span><span class="mi">6</span> <span class="o">+</span> <span class="n">k_2</span><span class="o">/</span><span class="mi">3</span> <span class="o">+</span> <span class="n">k_3</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">sol_4</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">+</span> <span class="n">k_4</span><span class="o">/</span><span class="mi">6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_k_5</span> <span class="o">=</span> <span class="n">dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_term</span><span class="p">(</span><span class="n">sol_4</span><span class="p">)</span>
+        <span class="n">sol_3</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">+</span> <span class="n">k_4</span><span class="o">/</span><span class="mi">15</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_5</span><span class="o">/</span><span class="mi">10</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_error</span><span class="p">(</span><span class="n">sol_4</span><span class="p">,</span> <span class="n">sol_3</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sol_4</span><span class="p">,</span> <span class="n">error</span>
+    
+    <span class="k">def</span> <span class="nf">_integrate_to_z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Integrate to z with adaptive step size.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        z : float</span>
+<span class="sd">            Target propagation length.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">stock_z</span> <span class="o">&lt;</span> <span class="n">z</span><span class="p">:</span>
+            <span class="c1"># Actuate position inside the waveguide</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stock_z</span>
+            
+            <span class="c1"># Step of dz</span>
+            <span class="n">vec_eval</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stock_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz</span><span class="p">)</span>
+            
+            <span class="c1"># Error control</span>
+            <span class="k">if</span> <span class="n">error</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">local_error</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dz</span> <span class="o">/=</span> <span class="mi">2</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Discarded&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_name</span> <span class="o">==</span> <span class="s1">&#39;DP5IP&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_k_7</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_name</span> <span class="o">==</span> <span class="s1">&#39;ERK4IP&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_k_5</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_error</span> <span class="o">&lt;=</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">local_error</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stock_z</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dz</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_factor</span>
+            <span class="k">elif</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">local_error</span> <span class="o">&lt;=</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_error</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stock_z</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stock_z</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dz</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">dz</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dz</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dz</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_factor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stock_vec</span> <span class="o">=</span> <span class="n">vec_eval</span>
+    
+<div class="viewcode-block" id="Solver.solve"><a class="viewcode-back" href="../../pychi.html#pychi.solvers.Solver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Integrate over waveguide length with adaptive step size</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">z_pts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_save</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_error</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stock_z</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stock_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">light</span><span class="o">.</span><span class="n">field_t_in</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_name</span> <span class="o">==</span> <span class="s1">&#39;DP5IP&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_k_7</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dormand_prince_step</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_name</span> <span class="o">==</span> <span class="s1">&#39;ERK4IP&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_k_5</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_erk4ip_step</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_name</span> <span class="o">==</span> <span class="s1">&#39;RK4IP&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk4ip_step</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_name</span> <span class="o">==</span> <span class="s1">&#39;RK546M&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk546m</span>
+        <span class="n">timer</span> <span class="o">=</span> <span class="n">timing</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            
+        <span class="c1"># Total integration</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_save</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;z: </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_pts</span><span class="p">))</span>
+            
+            <span class="c1"># Integrate over dz</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_integrate_to_z</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+            
+            <span class="c1"># Save spectrum</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stock_vec</span><span class="p">)</span>\
+                <span class="o">*</span><span class="n">numbaexp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">betas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">betas</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rel_omega</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">stock_z</span><span class="p">)</span>
+        
+        <span class="c1"># Save waveform</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timing</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">timer</span><span class="si">}</span><span class="s2"> seconds for integration.&quot;</span><span class="p">)</span>                
+        <span class="bp">self</span><span class="o">.</span><span class="n">waveform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifftshift</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">light</span><span class="o">.</span><span class="n">_set_propagation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_save</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform</span><span class="p">)</span></div></div>
+<span class="w">        </span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Optimized functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1">### Numba exponential</span>
+<div class="viewcode-block" id="numbaexp"><a class="viewcode-back" href="../../pychi.html#pychi.solvers.numbaexp">[docs]</a><span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:]),</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:])])</span>
+<span class="k">def</span> <span class="nf">numbaexp</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<span class="c1">### Numba norm</span>
+<div class="viewcode-block" id="numbanorm"><a class="viewcode-back" href="../../pychi.html#pychi.solvers.numbanorm">[docs]</a><span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:])])</span>
+<span class="k">def</span> <span class="nf">numbanorm</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">field</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thibault Voumard.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

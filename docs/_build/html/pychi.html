@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pychi package &mdash; pychi 0.0.1 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="src" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> pychi
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">src</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pychi package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pychi.light">pychi.light module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pychi.materials">pychi.materials module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pychi.models">pychi.models module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pychi.solvers">pychi.solvers module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pychi">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pychi</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">src</a> &raquo;</li>
+      <li>pychi package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pychi.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="pychi-package">
+<h1>pychi package<a class="headerlink" href="#pychi-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pychi.light">
+<span id="pychi-light-module"></span><h2>pychi.light module<a class="headerlink" href="#module-pychi.light" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Aug 13 12:01:48 2021</p>
+<p>&#64;author: Thibault</p>
+<p>This module contains the classes used to instantiate light. Different
+standard pulse shapes are built-in, and a class is dedicated to accomodating
+user-provided light with arbitrary spectral shape. Note that the electric
+field is stored as an analytical envelope, thus is a complex quantity.</p>
+<dl class="class">
+<dt id="pychi.light.Arbitrary">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.light.</code><code class="sig-name descname">Arbitrary</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">pulse_frequency_axis</em>, <em class="sig-param">pulse_electric_field</em>, <em class="sig-param">pulse_energy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Arbitrary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Arbitrary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.light.Light" title="pychi.light.Light"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.light.Light</span></code></a></p>
+<p>Class for arbitrary light waveform, specified in frequency domain.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.light.Cw">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.light.</code><code class="sig-name descname">Cw</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">average_power</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Cw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Cw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.light.Light" title="pychi.light.Light"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.light.Light</span></code></a></p>
+<p>Class for CW light.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.light.Gaussian">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.light.</code><code class="sig-name descname">Gaussian</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">pulse_duration</em>, <em class="sig-param">pulse_energy</em>, <em class="sig-param">pulse_wavelength</em>, <em class="sig-param">delay=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.light.Light" title="pychi.light.Light"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.light.Light</span></code></a></p>
+<p>Class for a Gaussian pulse.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.light.Light">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.light.</code><code class="sig-name descname">Light</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">field_t_in</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Light"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Light" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parent light class. Implement support for adding pulses,
+saving the results of a propagation and plotting these
+results. Not suitable for light instantiation.</p>
+<dl class="method">
+<dt id="pychi.light.Light.add_shot_noise">
+<code class="sig-name descname">add_shot_noise</code><span class="sig-paren">(</span><em class="sig-param">seed=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Light.add_shot_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Light.add_shot_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add shot noise to the pulse, useful for coherence study.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>seed</strong> (<em>int</em>) – Seed for the random number generator for reproducibility.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pychi.light.Light.plot_propagation">
+<code class="sig-name descname">plot_propagation</code><span class="sig-paren">(</span><em class="sig-param">savename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Light.plot_propagation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Light.plot_propagation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot propagation results.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pychi.light.Light.set_result_as_start">
+<code class="sig-name descname">set_result_as_start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Light.set_result_as_start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Light.set_result_as_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set output field from propagation as initial field for a new
+propagation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>New Light object with final propagation result as input field.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pychi.light.Light" title="pychi.light.Light">Light</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.light.Sech">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.light.</code><code class="sig-name descname">Sech</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">pulse_duration</em>, <em class="sig-param">pulse_energy</em>, <em class="sig-param">pulse_wavelength</em>, <em class="sig-param">delay=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/light.html#Sech"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.light.Sech" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.light.Light" title="pychi.light.Light"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.light.Light</span></code></a></p>
+<p>Class for a sech pulse.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pychi.materials">
+<span id="pychi-materials-module"></span><h2>pychi.materials module<a class="headerlink" href="#module-pychi.materials" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Aug 13 12:07:43 2021</p>
+<p>&#64;author: Thibault</p>
+<dl class="class">
+<dt id="pychi.materials.Waveguide">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.materials.</code><code class="sig-name descname">Waveguide</code><span class="sig-paren">(</span><em class="sig-param">frequency</em>, <em class="sig-param">n_eff</em>, <em class="sig-param">chi_2</em>, <em class="sig-param">chi_3</em>, <em class="sig-param">effective_area</em>, <em class="sig-param">length</em>, <em class="sig-param">raman_fraction=0.18</em>, <em class="sig-param">raman_tau_1=1.22e-14</em>, <em class="sig-param">raman_tau_2=3.2e-14</em>, <em class="sig-param">t_pts=16384</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/materials.html#Waveguide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.materials.Waveguide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Waveguide class. Contains all material related information, i.e. the
+refractive index curve versus frequency, the Raman parameters, the
+nonlinear coefficients, the effective area and length. This object
+should be the first object instantiated, as the time/frequency axes of
+the simulation are derived here from the available refractive
+index data.</p>
+<dl class="method">
+<dt id="pychi.materials.Waveguide.chi_2">
+<em class="property">property </em><code class="sig-name descname">chi_2</code><a class="headerlink" href="#pychi.materials.Waveguide.chi_2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.chi_3">
+<em class="property">property </em><code class="sig-name descname">chi_3</code><a class="headerlink" href="#pychi.materials.Waveguide.chi_3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.compute_betas">
+<code class="sig-name descname">compute_betas</code><span class="sig-paren">(</span><em class="sig-param">wavelength=None</em>, <em class="sig-param">order=6</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/materials.html#Waveguide.compute_betas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.materials.Waveguide.compute_betas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute beta coefficients at a given wavelength and order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelength</strong> (<em>float</em><em>, </em><em>optional</em>) – Wavelength at which the beta coefficients are computed. The default is
+the center of the simulation axis.</p></li>
+<li><p><strong>order</strong> (<em>int</em><em>, </em><em>optional</em>) – Highest order of the beta coefficients to be computed. The default is 6.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>beta</strong> – Beta coefficients of the material at the given wavelength.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.k">
+<em class="property">property </em><code class="sig-name descname">k</code><a class="headerlink" href="#pychi.materials.Waveguide.k" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.n_eff">
+<em class="property">property </em><code class="sig-name descname">n_eff</code><a class="headerlink" href="#pychi.materials.Waveguide.n_eff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.plot_refractive_index">
+<code class="sig-name descname">plot_refractive_index</code><span class="sig-paren">(</span><em class="sig-param">savename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/materials.html#Waveguide.plot_refractive_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.materials.Waveguide.plot_refractive_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot refractive index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.rhs_prefactor">
+<em class="property">property </em><code class="sig-name descname">rhs_prefactor</code><a class="headerlink" href="#pychi.materials.Waveguide.rhs_prefactor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.set_betas">
+<code class="sig-name descname">set_betas</code><span class="sig-paren">(</span><em class="sig-param">betas</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/materials.html#Waveguide.set_betas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.materials.Waveguide.set_betas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience only. Allow the use to provide the beta coefficients
+instead of n_eff. Should be avoided.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.set_gamma">
+<code class="sig-name descname">set_gamma</code><span class="sig-paren">(</span><em class="sig-param">gamma</em>, <em class="sig-param">wavelength=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/materials.html#Waveguide.set_gamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.materials.Waveguide.set_gamma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience only. Allow the user to give the nonlinear coefficient instead
+of chi3. Overwrite the initialized chi3 value accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gamma</strong> (<em>float</em>) – Nonlinear coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pychi.materials.Waveguide.set_n2">
+<code class="sig-name descname">set_n2</code><span class="sig-paren">(</span><em class="sig-param">n2</em>, <em class="sig-param">wavelength=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/materials.html#Waveguide.set_n2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.materials.Waveguide.set_n2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience only. Allow the user to give the nonlinear index instead
+of chi3. Overwrite the initialized chi3 value accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n2</strong> (<em>float</em>) – Nonlinear index.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pychi.models">
+<span id="pychi-models-module"></span><h2>pychi.models module<a class="headerlink" href="#module-pychi.models" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Feb 18 17:24:21 2022</p>
+<p>&#64;author: voumardt</p>
+<dl class="class">
+<dt id="pychi.models.Chi2">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">Chi2</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Chi2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Chi2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.models.Model" title="pychi.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.models.Model</span></code></a></p>
+<p>Sum frequency generation and difference frequency generation only physical
+model.</p>
+<dl class="method">
+<dt id="pychi.models.Chi2.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Chi2.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Chi2.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear function with chi 2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_f</strong> (<em>array</em>) – Analytical envelope of the electric field in frequency domain.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nonlinear evolution term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.models.Chi2Chi3">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">Chi2Chi3</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Chi2Chi3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Chi2Chi3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.models.Model" title="pychi.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.models.Model</span></code></a></p>
+<p>Triple-sum, sum and difference frequency
+generation physical model.</p>
+<dl class="method">
+<dt id="pychi.models.Chi2Chi3.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Chi2Chi3.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Chi2Chi3.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear function with chi 2 and chi 3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_f</strong> (<em>array</em>) – Analytical envelope of the electric field in frequency domain.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nonlinear evolution term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.models.Chi3">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">Chi3</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Chi3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Chi3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.models.Model" title="pychi.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.models.Model</span></code></a></p>
+<p>Triple sum-frequency physical model.</p>
+<dl class="method">
+<dt id="pychi.models.Chi3.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Chi3.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Chi3.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear function with spm and chi 3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_f</strong> (<em>array</em>) – Analytical envelope of the electric field in frequency domain.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nonlinear evolution term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.models.Model">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">Model</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parent class for the different nonlinear Schrödinger equations. Provide
+general utility, optimization and setup functions for the physics
+happening in the child classes.</p>
+<dl class="method">
+<dt id="pychi.models.Model.dispersion_step">
+<code class="sig-name descname">dispersion_step</code><span class="sig-paren">(</span><em class="sig-param">field</em>, <em class="sig-param">dz</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Model.dispersion_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Model.dispersion_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute dispersion step with field in frequency domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field</strong> (<em>array</em>) – Field in frequency domain.</p></li>
+<li><p><strong>dz</strong> (<em>float</em>) – Step size.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dispersion affected field in frequency domain.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pychi.models.Model.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Model.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Model.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear term, implemented in child classes for different interaction
+types.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.models.Spm">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">Spm</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Spm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Spm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.models.Model" title="pychi.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.models.Model</span></code></a></p>
+<p>Self phase modulation only physical model.</p>
+<dl class="method">
+<dt id="pychi.models.Spm.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#Spm.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.Spm.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear function with spm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_f</strong> (<em>array</em>) – Analytical envelope of the electric field in frequency domain.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nonlinear evolution term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.models.SpmChi2">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">SpmChi2</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#SpmChi2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.SpmChi2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.models.Model" title="pychi.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.models.Model</span></code></a></p>
+<p>Self phase modulation, sum and difference frequency
+generation physical model.</p>
+<dl class="method">
+<dt id="pychi.models.SpmChi2.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#SpmChi2.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.SpmChi2.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear function with spm and chi 2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_f</strong> (<em>array</em>) – Analytical envelope of the electric field in frequency domain.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nonlinear evolution term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.models.SpmChi2Chi3">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">SpmChi2Chi3</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#SpmChi2Chi3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.SpmChi2Chi3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.models.Model" title="pychi.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.models.Model</span></code></a></p>
+<p>Self phase modulation, triple harmonic, sum and difference frequency
+generation physical model.</p>
+<dl class="method">
+<dt id="pychi.models.SpmChi2Chi3.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#SpmChi2Chi3.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.SpmChi2Chi3.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear function with spm, chi 2 and chi 3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_f</strong> (<em>array</em>) – Analytical envelope of the electric field in frequency domain.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nonlinear evolution term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pychi.models.SpmChi3">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">SpmChi3</code><span class="sig-paren">(</span><em class="sig-param">waveguide</em>, <em class="sig-param">light</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#SpmChi3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.SpmChi3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pychi.models.Model" title="pychi.models.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pychi.models.Model</span></code></a></p>
+<p>Self phase modulation and triple harmonic physical model.</p>
+<dl class="method">
+<dt id="pychi.models.SpmChi3.nonlinear_term">
+<code class="sig-name descname">nonlinear_term</code><span class="sig-paren">(</span><em class="sig-param">field_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/models.html#SpmChi3.nonlinear_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.SpmChi3.nonlinear_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nonlinear function with spm and chi 3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>field_f</strong> (<em>array</em>) – Analytical envelope of the electric field in frequency domain.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Nonlinear evolution term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pychi.models.numbaconj">
+<code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">numbaconj</code><a class="reference internal" href="_modules/pychi/models.html#numbaconj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.numbaconj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute numba optimized complex conjugate of a vector.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pychi.models.numbacopy">
+<code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">numbacopy</code><a class="reference internal" href="_modules/pychi/models.html#numbacopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.numbacopy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a numba optimized copy of a vector.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pychi.models.numbaexp">
+<code class="sig-prename descclassname">pychi.models.</code><code class="sig-name descname">numbaexp</code><a class="reference internal" href="_modules/pychi/models.html#numbaexp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.models.numbaexp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute numba optimized exponential of input vector.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pychi.solvers">
+<span id="pychi-solvers-module"></span><h2>pychi.solvers module<a class="headerlink" href="#module-pychi.solvers" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Feb 18 17:54:20 2022</p>
+<p>&#64;author: voumardt</p>
+<dl class="class">
+<dt id="pychi.solvers.Solver">
+<em class="property">class </em><code class="sig-prename descclassname">pychi.solvers.</code><code class="sig-name descname">Solver</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">z_pts=500</em>, <em class="sig-param">local_error=1e-05</em>, <em class="sig-param">adaptive_factor=1.1</em>, <em class="sig-param">max_dz=None</em>, <em class="sig-param">method=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/solvers.html#Solver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.solvers.Solver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="pychi.solvers.Solver.solve">
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pychi/solvers.html#Solver.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.solvers.Solver.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrate over waveguide length with adaptive step size</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pychi.solvers.numbaexp">
+<code class="sig-prename descclassname">pychi.solvers.</code><code class="sig-name descname">numbaexp</code><a class="reference internal" href="_modules/pychi/solvers.html#numbaexp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.solvers.numbaexp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pychi.solvers.numbanorm">
+<code class="sig-prename descclassname">pychi.solvers.</code><code class="sig-name descname">numbanorm</code><a class="reference internal" href="_modules/pychi/solvers.html#numbanorm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pychi.solvers.numbanorm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pychi">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pychi" title="Permalink to this headline">¶</a></h2>
+<p>Created on Thu Feb 17 12:32:49 2022</p>
+<p>&#64;author: voumardt</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="src" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thibault Voumard.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

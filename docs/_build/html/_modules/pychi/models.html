@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pychi.models &mdash; pychi 0.0.1 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> pychi
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pychi.html">pychi package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pychi</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pychi.models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pychi.models</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Feb 18 17:24:21 2022</span>
+
+<span class="sd">@author: voumardt</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numba</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pyfftw</span>
+<span class="kn">from</span> <span class="nn">scipy.constants</span> <span class="kn">import</span> <span class="n">c</span>
+<span class="kn">import</span> <span class="nn">time</span> <span class="k">as</span> <span class="nn">timing</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../pychi.html#pychi.models.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parent class for the different nonlinear Schrödinger equations. Provide</span>
+<span class="sd">    general utility, optimization and setup functions for the physics</span>
+<span class="sd">    happening in the child classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct model class. Some attributes are initialized in other methods.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object containing the material parameters.</span>
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the light parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span> <span class="o">=</span> <span class="n">waveguide</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">light</span> <span class="o">=</span> <span class="n">light</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="o">//</span><span class="mi">2</span>
+        
+    <span class="k">def</span> <span class="nf">_setup_aaspm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup storage, ffts and selection array for anti-aliasing spm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># padded fft</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># On the Elimination of Aliasing in a Finite-Difference Schemes by Filtering High Wavenumber</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_a_aaspm</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_b_aaspm</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_c_aaspm</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_d_aaspm</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fft_spm</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fft_a_aaspm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fft_b_aaspm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ifft_spm</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fft_c_aaspm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fft_d_aaspm</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;FFTW_BACKWARD&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># selection arrays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_spm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_spm</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_spm</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_spm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Raman term</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raman_effect</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raman_effect</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">raman_effect</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raman_effect</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">raman_effect</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raman_effect</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">raman_fraction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raman_effect</span> <span class="o">*=</span> <span class="mi">3</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spm_pad_factor</span><span class="o">**</span><span class="mi">2</span>
+    
+    <span class="k">def</span> <span class="nf">_setup_aashg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup storage, selection array and exponents for anti-aliasing chi 2</span>
+<span class="sd">        frequency conversion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># padded fft</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shg_pad_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">center_omega</span><span class="o">/</span><span class="mi">2</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rel_omega</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="o">*</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pad_exp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_a_shg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_b_shg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_c_shg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_d_shg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fft_shg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fft_a_shg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fft_b_shg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ifft_shg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fft_c_shg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fft_d_shg</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;FFTW_BACKWARD&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># selection arrays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_shg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_shg</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_shg</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_shg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># frequency shifting term</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shg_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">time</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">time</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shg_pts_pad</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exponent_sfg</span> <span class="o">=</span> <span class="n">numbaexp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">center_omega</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_time</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">shg_pad_exp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exponent_dfg</span> <span class="o">=</span> <span class="n">numbaconj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exponent_sfg</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_setup_aathg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup storage, selection array and exponents for anti-aliasing chi 3</span>
+<span class="sd">        frequency conversion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># padded fft</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thg_pad_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">center_omega</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rel_omega</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">t_pts</span><span class="o">*</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pad_exp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_a_thg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_b_thg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_c_thg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fft_d_thg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fft_thg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fft_a_thg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fft_b_thg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ifft_thg</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fft_c_thg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fft_d_thg</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;FFTW_BACKWARD&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># selection arrays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_thg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_thg</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection_array_thg</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_thg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># frequency shifting terms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thg_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">time</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">time</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">thg_pts_pad</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exponent_thg</span> <span class="o">=</span> <span class="n">numbaexp</span><span class="p">(</span><span class="mi">2</span><span class="n">j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">center_omega</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_time</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">thg_pad_exp</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+<span class="w">        </span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Nonlinear operations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_aaspm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute anti-aliasing self-phase modulation term with Raman effect.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Anti-aliased SPM term in frequency domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_spm</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_f</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_spm</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span> <span class="o">=</span> <span class="n">field_f</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span>
+        <span class="n">field_t_pad</span> <span class="o">=</span> <span class="n">numbacopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ifft_spm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage_array_spm</span><span class="p">))</span>
+        <span class="n">int_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_spm</span><span class="p">(</span><span class="n">numbaabs2</span><span class="p">(</span><span class="n">field_t_pad</span><span class="p">))</span>
+        <span class="n">spm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ifft_spm</span><span class="p">(</span><span class="n">int_f</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">raman_effect</span><span class="p">)</span><span class="o">*</span><span class="n">field_t_pad</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_spm</span><span class="p">(</span><span class="n">spm</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection_array_spm</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_aash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute combined anti-aliasing sum frequency generation and difference</span>
+<span class="sd">        frequency generation</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Anti-aliased SFG and DFG in frequency domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_shg</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_f</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_shg</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span> <span class="o">=</span> <span class="n">field_f</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span>
+        <span class="n">sht</span> <span class="o">=</span> <span class="n">numbasht</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ifft_shg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage_array_shg</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">exponent_sfg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_shg</span><span class="p">(</span><span class="n">sht</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection_array_shg</span><span class="p">]</span> 
+
+    <span class="k">def</span> <span class="nf">_aathg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute combined anti-aliasing triple and inverse triple harmonic.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Field in time domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Anti-aliased triple and inverse triple harmonic in frequency domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_thg</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_f</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_array_thg</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span> <span class="o">=</span> <span class="n">field_f</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">half_pts</span><span class="p">:]</span>
+        <span class="n">field_t_mult</span> <span class="o">=</span> <span class="n">numbathg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ifft_thg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">storage_array_thg</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">exponent_thg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_thg</span><span class="p">(</span><span class="n">field_t_mult</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection_array_thg</span><span class="p">]</span>
+
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Propagation functions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Model.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.Model.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear term, implemented in child classes for different interaction</span>
+<span class="sd">        types.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+    
+<div class="viewcode-block" id="Model.dispersion_step"><a class="viewcode-back" href="../../pychi.html#pychi.models.Model.dispersion_step">[docs]</a>    <span class="k">def</span> <span class="nf">dispersion_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute dispersion step with field in frequency domain.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        field : array</span>
+<span class="sd">            Field in frequency domain.</span>
+<span class="sd">        dz : float</span>
+<span class="sd">            Step size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Dispersion affected field in frequency domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numbaexp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="n">dz</span><span class="p">)</span><span class="o">*</span><span class="n">field</span></div></div>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Model classes</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Spm"><a class="viewcode-back" href="../../pychi.html#pychi.models.Spm">[docs]</a><span class="k">class</span> <span class="nc">Spm</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Self phase modulation only physical model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object with the material properties of the propagation medium.</span>
+
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the optical field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aaspm</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_recommended_solver</span> <span class="o">=</span> <span class="s1">&#39;ERK4IP&#39;</span>
+        
+<div class="viewcode-block" id="Spm.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.Spm.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear function with spm</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Analytical envelope of the electric field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Nonlinear evolution term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tot_spm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aaspm</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rhs_prefactor</span><span class="o">*</span><span class="n">tot_spm</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_3</span><span class="o">/</span><span class="mi">4</span></div></div>
+
+
+<div class="viewcode-block" id="Chi3"><a class="viewcode-back" href="../../pychi.html#pychi.models.Chi3">[docs]</a><span class="k">class</span> <span class="nc">Chi3</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Triple sum-frequency physical model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object with the material properties of the propagation medium.</span>
+
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the optical field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aathg</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="Chi3.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.Chi3.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear function with spm and chi 3</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Analytical envelope of the electric field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Nonlinear evolution term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">thg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aathg</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rhs_prefactor</span><span class="o">*</span><span class="n">thg_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_3</span><span class="o">/</span><span class="mi">4</span></div></div>
+        
+
+<div class="viewcode-block" id="SpmChi3"><a class="viewcode-back" href="../../pychi.html#pychi.models.SpmChi3">[docs]</a><span class="k">class</span> <span class="nc">SpmChi3</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Self phase modulation and triple harmonic physical model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object with the material properties of the propagation medium.</span>
+
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the optical field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aaspm</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aathg</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="SpmChi3.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.SpmChi3.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear function with spm and chi 3</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Analytical envelope of the electric field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Nonlinear evolution term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tot_spm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aaspm</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="n">thg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aathg</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rhs_prefactor</span><span class="o">*</span><span class="p">(</span><span class="n">thg_term</span> <span class="o">+</span> <span class="n">tot_spm</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_3</span><span class="o">/</span><span class="mi">4</span></div></div>
+
+
+<div class="viewcode-block" id="Chi2"><a class="viewcode-back" href="../../pychi.html#pychi.models.Chi2">[docs]</a><span class="k">class</span> <span class="nc">Chi2</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sum frequency generation and difference frequency generation only physical</span>
+<span class="sd">    model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object with the material properties of the propagation medium.</span>
+
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the optical field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aashg</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Chi2.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.Chi2.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear function with chi 2</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Analytical envelope of the electric field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Nonlinear evolution term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aash</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rhs_prefactor</span><span class="o">*</span><span class="n">shg_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_2</span><span class="o">/</span><span class="mi">2</span></div></div>
+    
+
+<div class="viewcode-block" id="SpmChi2"><a class="viewcode-back" href="../../pychi.html#pychi.models.SpmChi2">[docs]</a><span class="k">class</span> <span class="nc">SpmChi2</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Self phase modulation, sum and difference frequency</span>
+<span class="sd">    generation physical model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object with the material properties of the propagation medium.</span>
+
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the optical field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aaspm</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aashg</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SpmChi2.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.SpmChi2.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear function with spm and chi 2</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Analytical envelope of the electric field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Nonlinear evolution term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tot_spm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aaspm</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="n">shg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aash</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rhs_prefactor</span><span class="o">*</span><span class="p">(</span><span class="n">tot_spm</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_3</span><span class="o">/</span><span class="mi">4</span> <span class="o">+</span> <span class="n">shg_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_2</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Chi2Chi3"><a class="viewcode-back" href="../../pychi.html#pychi.models.Chi2Chi3">[docs]</a><span class="k">class</span> <span class="nc">Chi2Chi3</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Triple-sum, sum and difference frequency</span>
+<span class="sd">    generation physical model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object with the material properties of the propagation medium.</span>
+
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the optical field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aashg</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aathg</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Chi2Chi3.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.Chi2Chi3.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear function with chi 2 and chi 3</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Analytical envelope of the electric field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Nonlinear evolution term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aash</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="n">thg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aathg</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rhs_prefactor</span><span class="o">*</span><span class="p">(</span><span class="n">thg_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_3</span><span class="o">/</span><span class="mi">4</span> <span class="o">+</span> <span class="n">shg_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_2</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SpmChi2Chi3"><a class="viewcode-back" href="../../pychi.html#pychi.models.SpmChi2Chi3">[docs]</a><span class="k">class</span> <span class="nc">SpmChi2Chi3</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Self phase modulation, triple harmonic, sum and difference frequency</span>
+<span class="sd">    generation physical model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        waveguide : Waveguide</span>
+<span class="sd">            Object with the material properties of the propagation medium.</span>
+
+<span class="sd">        light : Light</span>
+<span class="sd">            Object containing the optical field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveguide</span><span class="p">,</span> <span class="n">light</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aaspm</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aashg</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_aathg</span><span class="p">()</span>
+        
+<div class="viewcode-block" id="SpmChi2Chi3.nonlinear_term"><a class="viewcode-back" href="../../pychi.html#pychi.models.SpmChi2Chi3.nonlinear_term">[docs]</a>    <span class="k">def</span> <span class="nf">nonlinear_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Nonlinear function with spm, chi 2 and chi 3</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -------</span>
+<span class="sd">        field_f : array</span>
+<span class="sd">            Analytical envelope of the electric field in frequency domain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">            Nonlinear evolution term.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tot_spm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aaspm</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="n">thg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aathg</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="n">shg_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aash</span><span class="p">(</span><span class="n">field_f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">rhs_prefactor</span><span class="o">*</span><span class="p">((</span><span class="n">thg_term</span> <span class="o">+</span> <span class="n">tot_spm</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_3</span><span class="o">/</span><span class="mi">4</span> <span class="o">+</span> <span class="n">shg_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">waveguide</span><span class="o">.</span><span class="n">chi_2</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span></div></div>
+<span class="w">    </span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Optimized functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1">### Numba exponential</span>
+<div class="viewcode-block" id="numbaexp"><a class="viewcode-back" href="../../pychi.html#pychi.models.numbaexp">[docs]</a><span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:]),</span>
+             <span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:])])</span>
+<span class="k">def</span> <span class="nf">numbaexp</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute numba optimized exponential of input vector.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<span class="c1">### Numba absolute value squared</span>
+<span class="nd">@numba</span><span class="o">.</span><span class="n">vectorize</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">),</span>
+                  <span class="n">numba</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">)])</span>
+<span class="k">def</span> <span class="nf">numbaabs2</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute numba optimized absolute norm square of input vector.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">real</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">imag</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1">### Numba copy</span>
+<div class="viewcode-block" id="numbacopy"><a class="viewcode-back" href="../../pychi.html#pychi.models.numbacopy">[docs]</a><span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:]),</span>
+             <span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:])])</span>
+<span class="k">def</span> <span class="nf">numbacopy</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a numba optimized copy of a vector.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<span class="c1">### Numba conjugation</span>
+<div class="viewcode-block" id="numbaconj"><a class="viewcode-back" href="../../pychi.html#pychi.models.numbaconj">[docs]</a><span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">[:]),</span>
+             <span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:](</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">[:])])</span>
+<span class="k">def</span> <span class="nf">numbaconj</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute numba optimized complex conjugate of a vector.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<span class="c1">### Numba shg</span>
+<span class="nd">@numba</span><span class="o">.</span><span class="n">vectorize</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">(</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">,</span> <span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">),</span>
+                  <span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">(</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">,</span> <span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">)])</span>
+<span class="k">def</span> <span class="nf">numbasht</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute numba optimized sh term.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">y</span>  <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">real</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">imag</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">real</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">y</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span>
+
+<span class="c1">### Numba thg</span>
+<span class="nd">@numba</span><span class="o">.</span><span class="n">vectorize</span><span class="p">([</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">(</span><span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">,</span> <span class="n">numba</span><span class="o">.</span><span class="n">complex128</span><span class="p">),</span>
+                  <span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">(</span><span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">,</span> <span class="n">numba</span><span class="o">.</span><span class="n">complex64</span><span class="p">)])</span>
+<span class="k">def</span> <span class="nf">numbathg</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute numba optimized th term.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">real</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">imag</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">real</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">real</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">y</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Thibault Voumard.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
