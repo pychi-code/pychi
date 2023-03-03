@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.constants import c
 
-from src import  *
+import pychi
 
 
 """
@@ -56,7 +56,7 @@ wg_freq, wg_n_eff = np.load('effective_index.npy')
 Nonlinear propagation
 """
 ### Prepare waveguide
-waveguide = materials.Waveguide(wg_freq, wg_n_eff, wg_chi_2, wg_chi_3,
+waveguide = pychi.materials.Waveguide(wg_freq, wg_n_eff, wg_chi_2, wg_chi_3,
                                 wg_a_eff, wg_length, t_pts=t_pts)
 # Additional options:
 # One can provide beta coefficients (strongly discouraged) overwriting the refractive
@@ -76,26 +76,26 @@ waveguide = materials.Waveguide(wg_freq, wg_n_eff, wg_chi_2, wg_chi_3,
 
 
 ### Prepare input pulse
-pulse = light.Sech(waveguide, pulse_duration, pulse_energy, pulse_wavelength)
+pulse = pychi.light.Sech(waveguide, pulse_duration, pulse_energy, pulse_wavelength)
 # Other available pulse shapes:
-# pulse = light.Gaussian(waveguide, pulse_duration, pulse_energy, pulse_wavelength)
-# pulse = light.Cw(waveguide, pulse_average_power, pulse_wavelength)
-# pulse = light.Arbitrary(waveguide, pulse_frequency_axis, pulse_electric_field, pulse_energy)
+# pulse = pychi.light.Gaussian(waveguide, pulse_duration, pulse_energy, pulse_wavelength)
+# pulse = pychi.light.Cw(waveguide, pulse_average_power, pulse_wavelength)
+# pulse = pychi.light.Arbitrary(waveguide, pulse_frequency_axis, pulse_electric_field, pulse_energy)
 
 
 ### Prepare model
-model = models.SpmChi2Chi3(waveguide, pulse)
+model = pychi.models.SpmChi2Chi3(waveguide, pulse)
 # Other models available:
-# model = models.Spm(waveguide, pulse)
-# model = models.Chi2(waveguide, pulse)
-# model = models.Chi3(waveguide, pulse)
-# model = models.SpmChi2(waveguide, pulse)
-# model = models.SpmChi3(waveguide, pulse)
-# model = models.Chi2Chi3(waveguide, pulse)
+# model = pychi.models.Spm(waveguide, pulse)
+# model = pychi.models.Chi2(waveguide, pulse)
+# model = pychi.models.Chi3(waveguide, pulse)
+# model = pychi.models.SpmChi2(waveguide, pulse)
+# model = pychi.models.SpmChi3(waveguide, pulse)
+# model = pychi.models.Chi2Chi3(waveguide, pulse)
 
 
 ### Prepare solver, solve
-solver = solvers.Solver(model)
+solver = pychi.solvers.Solver(model)
 solver.solve()
 
 
