@@ -108,3 +108,8 @@ pulse.plot_propagation()
 
 
 ```
+
+Typical propagation results would look as follows:
+![grafik](https://user-images.githubusercontent.com/97957751/222731448-ff856390-4325-4f39-8817-f508898e2308.png)
+
+Check the examples folder for some specific cases and validation against experimental data.
