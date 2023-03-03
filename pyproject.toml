@@ -17,5 +17,18 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scipy",
+    "inspect",
+    "math",
+    "numba",
+    "pyfftw",
+    "time",
+    "os",
+]
+
+
 [project.urls]
 "Homepage" = "https://github.com/TVoumard/pychi"
