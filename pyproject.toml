@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pychi"
-version = "0.0.1"
+version = "0.0.4"
 authors = [
   { name="Thibault Voumard", email="thibault.voumard@desy.de" },
 ]
