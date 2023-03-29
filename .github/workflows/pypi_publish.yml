@@ -29,4 +29,4 @@ jobs:
     - name: Build package
       run: python -m build
     - name: Publish package
-      run: python -m twine upload --skip-existing --repository dist/* --u __token__ --p ${{ secrets.PYPI_API_TOKEN }}
+      run: python -m twine upload dist/* --u __token__ --p ${{ secrets.PYPI_API_TOKEN }}
