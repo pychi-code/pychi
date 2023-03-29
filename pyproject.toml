@@ -1,14 +1,16 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "setuptools>=45", "setuptools_scm[toml]>=6.2"]
 build-backend = "hatchling.build"
+
+[tool.setuptools_scm]
 
 [project]
 name = "pychi"
-version = "0.0.4"
+dynamic = ['version']
 authors = [
-  { name="Thibault Voumard", email="thibault.voumard@desy.de" },
+  { name="Ultrafast Microphotonics Group - DESY", email="pychi@desy.de" },
 ]
-description = "Simulation package for the propagation of optical pulses in nonlinear materials"
+description = "Simulation package for the propagation of optical pulses in nonlinear media"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -28,3 +30,5 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/pychi-code/pychi"
+"Documentation" = "https://pychi.readthedocs.io/en/latest/index.html"
+"PyPI" = "https://pypi.org/project/pychi/"
