@@ -1,9 +1,14 @@
 [build-system]
-requires = ["hatchling", "setuptools>=45", "setuptools_scm[toml]>=6.2"]
-# build-backend = "hatchling.build"
-build-backend = 'setuptools.build_meta'
+requires = ["setuptools>=45", "wheel", "setuptools-git-versioning"]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
+[tool.setuptools-git-versioning]
+enabled = true
+
+# [build-system]
+# requires = ["hatchling", "setuptools>=45", "setuptools_scm[toml]>=6.2"]
+# build-backend = "hatchling.build"
+# [tool.setuptools_scm]
 
 [project]
 name = "pychi"
