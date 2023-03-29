@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pychi"
-version = "0.0.7"
+version = ""
 authors = [
   { name="Ultrafast Microphotonics Group - DESY", email="pychi@desy.de" },
 ]
