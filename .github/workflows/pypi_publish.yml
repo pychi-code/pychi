@@ -30,7 +30,7 @@ jobs:
       id: get_version
       run: |
         echo "VERSION=$GITHUB_REF" >> $GITHUB_OUTPUT
-        echo ${{get_version.outputs.VERSION}}
+        echo ${{steps.get_version.outputs.VERSION}}
       
 #      run: echo "VERSION=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
 #    - name: Edit Toml
