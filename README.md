@@ -113,3 +113,7 @@ Typical propagation results would look as follows:
 ![grafik](https://user-images.githubusercontent.com/97957751/222731448-ff856390-4325-4f39-8817-f508898e2308.png)
 
 Check the examples folder for some specific cases and validation against experimental data.
+
+
+pychi has been developped at DESY by the Ultrafast Microphotonics group. If you use it for publications, please cite the associated paper
+https://doi.org/10.1063/5.0135252
