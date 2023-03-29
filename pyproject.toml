@@ -1,19 +1,10 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools-git-versioning"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools-git-versioning]
-enabled = true
-
-# [build-system]
-# requires = ["hatchling", "setuptools>=45", "setuptools_scm[toml]>=6.2"]
-# build-backend = "hatchling.build"
-# [tool.setuptools_scm]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "pychi"
-dynamic = ['version']
-# version = "0.0.4"
+version = ""
 authors = [
   { name="Ultrafast Microphotonics Group - DESY", email="pychi@desy.de" },
 ]
