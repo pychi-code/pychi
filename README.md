@@ -117,3 +117,6 @@ Check the examples folder for some specific cases and validation against experim
 
 pychi has been developped at DESY by the Ultrafast Microphotonics group. If you use it for publications, please cite the associated paper
 https://doi.org/10.1063/5.0135252
+
+If you have any questions, remarks, contributions, do not hesitate to contact us at:
+pychi@desy.de
