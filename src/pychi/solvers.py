@@ -287,7 +287,7 @@ class Solver():
                 self.stock_z += self.dz
             else:
                 self.stock_z += self.dz
-                if self.max_dz is None or self.dz < self.max_dz:
+                if self.max_dz is None or self.dz*self.adaptive_factor < self.max_dz:
                     self.dz *= self.adaptive_factor
             self.stock_vec = vec_eval
     
