@@ -2,14 +2,38 @@
 
 A Python package for simulating the propagation of optical pulses in nonlinear materials.
 
-To install the package, run
+## Capabilities
+
+*pychi* is aimed at simulating the propagation of short pulses in nonlinear media and capturing as much physics as possible. It is based on a unidirectional propagation model, which stays valid even for sub-cycle optical pulses. In particular, this propagation model accounts for
+- Full frequency dependence of the effective refractive index
+- Quadratic nonlinear interactions (sum- and difference-frequency generation)
+- Cubic nonlinear interactions (triple sum-frequency generation, self-phase modulation, conjugated Kerr term)
+- Raman scattering
+- Self-steepening
+- Frequency-dependence of the nonlinear coefficients
+- z-dependence of the effective refractive index and nonlinear coefficients (permitting poling to be simulated)
+
+The package is built to be as user-friendly as possible, providing a relatively high-level interface for the user while still allowing for physically intricate simulation cases. It leverages a custom-made order 5 solver, although more classical solvers (such as the RK4IP) have also been implemented for completeness and versatility.
+
+## Installation
+
+First, make sure pip is up-to-date using
+```
+pip install --upgrade pip
+```
+
+Then install the package using
 ```
 pip install pychi
 ```
 
-The documentation is available under
-https://pychi.readthedocs.io/en/latest/
+## Documentation
 
+The documentation is available and best viewed under
+https://pychi.readthedocs.io/en/latest/
+This documentation has been automatically generated using SPHINX, and is still a work in progress. Do not hesitate to contact us for any needed clarifications and examples.
+
+## Example
 
 Here is a typical example of the use of pychi to simulate the propagation of a short optical pulse in a nonlinear waveguide exhibiting both cubic and quadratic nonlinearities.
 
@@ -59,17 +83,15 @@ Nonlinear propagation
 waveguide = pychi.materials.Waveguide(wg_freq, wg_n_eff, wg_chi_2, wg_chi_3,
                                 wg_a_eff, wg_length, t_pts=t_pts)
 # Additional options:
-# One can provide beta coefficients (strongly discouraged) overwriting the refractive
-# index using waveguide.set_betas(betas, wavelength)
-#
 # wg_n_eff can be a 2 dimensional array, with first dimension the wavelength dependence
 # and second dimension the z dependence.
 #
 # chi2 and chi3 can be callables, returning a z dependent value. Alternatively, they
 # can be defined as one dimensional arrays describing their z dependence, or
-# two dimensional arrays describing their z and frequency dependence.
+# two dimensional arrays describing their z and frequency dependence. They
+# can also be callables of (z, freq).
 #
-# One can use waveguide.set_gamma(gamma) or waveguide.set_n2(n2) to provide
+# One can use waveguide.set_gamma(gamma) or waveguide.set_n2(n2) to provide a
 # nonlinear coefficient or nonlinear refractive index and overwrite chi3.
 #
 # Check documentation for more options and details.
@@ -109,11 +131,12 @@ pulse.plot_propagation()
 
 ```
 
-Typical propagation results would look as follows:
+Typical propagation results using the above script would look as follows:
 ![grafik](https://user-images.githubusercontent.com/97957751/222731448-ff856390-4325-4f39-8817-f508898e2308.png)
 
 Check the examples folder for some specific cases and validation against experimental data.
 
+## Contact
 
 pychi has been developped at DESY by the Ultrafast Microphotonics group. If you use it for publications, please cite the associated paper
 https://doi.org/10.1063/5.0135252
