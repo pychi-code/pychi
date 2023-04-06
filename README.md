@@ -143,3 +143,4 @@ https://doi.org/10.1063/5.0135252
 
 If you have any questions, remarks, contributions, do not hesitate to contact us at:
 pychi@desy.de
+or here on GitHub
