@@ -22,10 +22,21 @@ First, make sure pip is up-to-date using
 pip install --upgrade pip
 ```
 
-Then install the package using
+On Windows, install the package using
 ```
 pip install pychi
 ```
+
+On Mac, one might have to first run
+```
+pip install pyfftw
+```
+
+before using
+```
+pip install pychi
+```
+
 
 ## Documentation
 
