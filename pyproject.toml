@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["pychi"]
+packages = ["src/pychi"]
 #package-dir = {"" = "src"}
 
 [project]
