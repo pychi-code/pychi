@@ -29,10 +29,11 @@ pip install pychi
 
 On Mac, one might have to first run
 ```
-pip install pyfftw
+conda install -c conda-forge pyfftw
 ```
+due to some OS specificities in pyFFTW installation.
 
-before using
+Then, one should be able to install pychi normally using
 ```
 pip install pychi
 ```
