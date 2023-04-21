@@ -12,7 +12,7 @@ import time as timing
 
 class Solver():
     def __init__(self, model, z_pts=500, local_error=0.00001, adaptive_factor=1.1,
-                 max_dz=None, method=None):
+                 max_dz=None, method=None, breakpoints=[]):
         """
         Solver class. Provides a stepper which performs integration of the PDE
         as well as error control and results saving.
@@ -34,6 +34,10 @@ class Solver():
         method: string
             Method used for integration. Can be RK4IP, ERK4IP or DP5IP.
             Default is DP5IP.
+        breakpoints: array
+            This array contains z coordinates where the solver will be forced
+            to compute a result. Useful for poled structures, to avoid having
+            a step larger than the poling. The default is an empty array.
         """
         self.model = model
         self.z_pts = z_pts
@@ -42,6 +46,7 @@ class Solver():
         self.max_dz = max_dz
         self.z_save = np.linspace(0, self.model.waveguide.length, self.z_pts)
         self.method_name = self._set_method_name(method)
+        self.breakpoints = breakpoints
     
     def _set_method_name(self, method):
         """
@@ -268,28 +273,44 @@ class Solver():
             # Actuate position inside the waveguide
             self.model.waveguide.z = self.stock_z
             
-            # Step of dz
-            vec_eval, error = self.step(self.stock_vec, self.dz)
+            # Check for forcing breakpoints
+            if (len(self.breakpoints) != 0 and (self.stock_z + self.dz > self.breakpoints[0])):
+                
+                # Step to breakpoint
+                dz = self.breakpoints[0] - self.stock_z + 1e-20
+                vec_eval, _ = self.step(self.stock_vec, dz)
+                
+                # Remove breakpoint
+                self.breakpoints = self.breakpoints[1:]
+                
+                # Update z pos and field
+                self.stock_z += dz
+                self.stock_vec = vec_eval
             
-            # Error control
-            if error >= 2*self.local_error:
-                self.dz /= 2
-                print('Discarded')
-                if self.method_name == 'DP5IP':
-                    self._k_7 = None
-                if self.method_name == 'ERK4IP':
-                    self._k_5 = None
-                continue
-            elif self.local_error <= error < 2*self.local_error:
-                self.stock_z += self.dz
-                self.dz /= self.adaptive_factor
-            elif 0.5*self.local_error <= error < self.local_error:
-                self.stock_z += self.dz
             else:
-                self.stock_z += self.dz
-                if self.max_dz is None or self.dz*self.adaptive_factor < self.max_dz:
-                    self.dz *= self.adaptive_factor
-            self.stock_vec = vec_eval
+            
+                # Step of dz
+                vec_eval, error = self.step(self.stock_vec, self.dz)
+                
+                # Error control
+                if error >= 2*self.local_error:
+                    self.dz /= 2
+                    print('Discarded')
+                    if self.method_name == 'DP5IP':
+                        self._k_7 = None
+                    if self.method_name == 'ERK4IP':
+                        self._k_5 = None
+                    continue
+                elif self.local_error <= error < 2*self.local_error:
+                    self.stock_z += self.dz
+                    self.dz /= self.adaptive_factor
+                elif 0.5*self.local_error <= error < self.local_error:
+                    self.stock_z += self.dz
+                else:
+                    self.stock_z += self.dz
+                    if self.max_dz is None or self.dz*self.adaptive_factor < self.max_dz:
+                        self.dz *= self.adaptive_factor
+                self.stock_vec = vec_eval
     
     def solve(self):
         """
