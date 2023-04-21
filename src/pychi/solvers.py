@@ -4,6 +4,7 @@ Created on Fri Feb 18 17:54:20 2022
 
 @author: voumardt
 """
+import matplotlib.pyplot as plt
 import numba
 import numpy as np
 from scipy.constants import c
@@ -47,6 +48,7 @@ class Solver():
         self.z_save = np.linspace(0, self.model.waveguide.length, self.z_pts)
         self.method_name = self._set_method_name(method)
         self.breakpoints = breakpoints
+        self.stepsize_save = []
     
     def _set_method_name(self, method):
         """
@@ -286,6 +288,7 @@ class Solver():
                 # Update z pos and field
                 self.stock_z += dz
                 self.stock_vec = vec_eval
+                self.stepsize_save = np.append(self.stepsize_save, dz)
             
             else:
             
@@ -303,11 +306,14 @@ class Solver():
                     continue
                 elif self.local_error <= error < 2*self.local_error:
                     self.stock_z += self.dz
+                    self.stepsize_save = np.append(self.stepsize_save, self.dz)
                     self.dz /= self.adaptive_factor
                 elif 0.5*self.local_error <= error < self.local_error:
                     self.stock_z += self.dz
+                    self.stepsize_save = np.append(self.stepsize_save, self.dz)
                 else:
                     self.stock_z += self.dz
+                    self.stepsize_save = np.append(self.stepsize_save, self.dz)
                     if self.max_dz is None or self.dz*self.adaptive_factor < self.max_dz:
                         self.dz *= self.adaptive_factor
                 self.stock_vec = vec_eval
@@ -348,6 +354,15 @@ class Solver():
         print(f"{timing.perf_counter() - timer} seconds for integration.")                
         self.waveform = np.fft.ifft(np.fft.ifftshift(self.spectrum, axes=1), axis=1)
         self.model.light._set_propagation(self.z_save, self.model.waveguide.freq, self.spectrum, self.waveform)
+
+    def plot_stepsize(self):
+        """
+        Plot the evolution of the stepsize against the position in the waveguide
+        """
+        plt.figure()
+        plt.plot(np.cumsum(self.stepsize_save), self.stepsize_save)
+        plt.xlabel('Distance [m]')
+        plt.ylabel('Step size [m]')
         
 
 """
