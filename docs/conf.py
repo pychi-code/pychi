@@ -47,6 +47,14 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # -- Options for HTML output -------------------------------------------------
 
+# Tell Sphinx to document private methods
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "private-members": True
+}
+
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
