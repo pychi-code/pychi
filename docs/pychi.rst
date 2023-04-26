@@ -33,11 +33,3 @@ pychi.solvers module
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: pychi
-   :members:
-   :undoc-members:
-   :show-inheritance:
