@@ -8,43 +8,43 @@ from scipy.constants import c
 eps_0 = 8.8541878128e-12
 
 class Waveguide():
+    """
+    Waveguide class. Contains all material related information, i.e. the
+    refractive index curve versus frequency, the Raman parameters, the
+    nonlinear coefficients, the effective area and length. This object
+    should be the first object instantiated, as the time/frequency axes of
+    the simulation are derived here from the available refractive
+    index data.
+
+    Parameters
+    ----------
+    frequency : array
+        Frequency axis on which the effective refractive index is given.
+    n_eff : float, vector, array or callable
+        Effective refractive index of the material.
+    chi_2 : float, vector, array or callable
+        Order 2 material nonlinearity. 
+    chi_3 : float, vector, array or callable
+        Order 3 material nonlinearity.
+    effective_area : float
+        Effective area at the pump wavelength.
+    length : float
+        Length of the material.
+    raman_fraction : float
+        Fractional contribution of the Raman effect to the Kerr effect.
+        The default is 0.18.
+    raman_tau_1 : float
+        Raman effect primary time scale. The default is 0.0122e-12.
+    raman_tau_2 : float
+        Raman effect secondary time scale. The default is 0.032e-12.
+    t_pts : float, optional
+        Number of points in the time and frequency axes, will be rounded
+        to nearest higher power of 2. The default is 2**14.
+    """
     def __init__(self, frequency, n_eff, chi_2, chi_3,
                  effective_area, length, raman_fraction=0.18,
                  raman_tau_1=0.0122e-12, raman_tau_2=0.032e-12,
                  t_pts=2**14):
-        """
-        Waveguide class. Contains all material related information, i.e. the
-        refractive index curve versus frequency, the Raman parameters, the
-        nonlinear coefficients, the effective area and length. This object
-        should be the first object instantiated, as the time/frequency axes of
-        the simulation are derived here from the available refractive
-        index data.
-
-        Parameters
-        ----------
-        frequency : array
-            Frequency axis on which the effective refractive index is given.
-        n_eff : float, vector, array or callable
-            Effective refractive index of the material.
-        chi_2 : float, vector, array or callable
-            Order 2 material nonlinearity. 
-        chi_3 : float, vector, array or callable
-            Order 3 material nonlinearity.
-        effective_area : float
-            Effective area at the pump wavelength.
-        length : float
-            Length of the material.
-        raman_fraction : float
-            Fractional contribution of the Raman effect to the Kerr effect.
-            The default is 0.18.
-        raman_tau_1 : float
-            Raman effect primary time scale. The default is 0.0122e-12.
-        raman_tau_2 : float
-            Raman effect secondary time scale. The default is 0.032e-12.
-        t_pts : float, optional
-            Number of points in the time and frequency axes, will be rounded
-            to nearest higher power of 2. The default is 2**14.
-        """
         self.z = 0
         self.t_pts = int(2**np.ceil(np.log2(t_pts)))
         self.length = length
