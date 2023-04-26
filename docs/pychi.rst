@@ -1,9 +1,6 @@
 pychi package
 =============
 
-Submodules
-----------
-
 pychi.light module
 ------------------
 
