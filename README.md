@@ -148,7 +148,7 @@ Typical propagation results using the above script would look as follows:
 
 Check the examples folder for some specific cases and validation against experimental data.
 
-## Contact
+## Contacts
 
 pychi has been developped at DESY by the Ultrafast Microphotonics group. If you use it for publications, please cite the associated paper
 https://doi.org/10.1063/5.0135252
