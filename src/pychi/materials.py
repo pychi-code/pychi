@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Aug 13 12:07:43 2021
-
-@author: Thibault
-"""
 from inspect import signature
 from math import factorial
 import matplotlib.pyplot as plt
@@ -13,31 +8,27 @@ from scipy.constants import c
 eps_0 = 8.8541878128e-12
 
 class Waveguide():
-    """
-    Waveguide class. Contains all material related information, i.e. the
-    refractive index curve versus frequency, the Raman parameters, the
-    nonlinear coefficients, the effective area and length. This object
-    should be the first object instantiated, as the time/frequency axes of
-    the simulation are derived here from the available refractive
-    index data.
-    """
-    
     def __init__(self, frequency, n_eff, chi_2, chi_3,
                  effective_area, length, raman_fraction=0.18,
                  raman_tau_1=0.0122e-12, raman_tau_2=0.032e-12,
                  t_pts=2**14):
         """
-        Construct the waveguide instance.
+        Waveguide class. Contains all material related information, i.e. the
+        refractive index curve versus frequency, the Raman parameters, the
+        nonlinear coefficients, the effective area and length. This object
+        should be the first object instantiated, as the time/frequency axes of
+        the simulation are derived here from the available refractive
+        index data.
 
         Parameters
         ----------
         frequency : array
             Frequency axis on which the effective refractive index is given.
-        n_eff : array
+        n_eff : float, vector, array or callable
             Effective refractive index of the material.
-        chi_2 : float
-            Order 2 material nonlinearity.
-        chi_3 : float
+        chi_2 : float, vector, array or callable
+            Order 2 material nonlinearity. 
+        chi_3 : float, vector, array or callable
             Order 3 material nonlinearity.
         effective_area : float
             Effective area at the pump wavelength.
@@ -76,48 +67,70 @@ class Waveguide():
     
     @property
     def n_eff(self):
+        """Get the effective refractive index at position z."""
         return self._n_eff(self.z)
     
     @n_eff.setter
     def n_eff(self, n_eff):
+        """
+        Set the effective refractive index. Change any float, vector or
+        array provided by the user into a z-callable function. A version
+        interpolated in frequency is also kept for other operations.
+        Beta coefficients are computed at this stage - they are
+        solely used for plotting purpose.
+        """
         self._n_eff = self._make_callable(n_eff)
         self.n_eff_inter = self._interpolate_n_eff()
         self.betas = self.compute_betas()
     
     @property
     def chi_2(self):
+        """Get the quadratic nonlinear coefficient at position z."""
         return self._chi_2(self.z)
     
     @chi_2.setter
     def chi_2(self, chi_2):
+        """
+        Set the quadractic nonlinear coefficient. Change any float,
+        vector or array provided by the user into a z-callable
+        function.
+        """
         self._chi_2 = self._make_callable(chi_2)
         
     @property
     def chi_3(self):
+        """Get the cubic nonlinear coefficient at position z."""
         return self._chi_3(self.z)
     
     @chi_3.setter
     def chi_3(self, chi_3):
+        """
+        Set the quadractic nonlinear coefficient. Change any float,
+        vector or array provided by the user into a z-callable
+        function.
+        """
         self._chi_3 = self._make_callable(chi_3)
     
     @property
     def k(self):
+        """Get the wavevectors at position z."""
         return np.fft.fftshift(self.n_eff*self.omega/c)
         
     @property
     def rhs_prefactor(self):
+        """Get the GNLSE right-hand-side prefactor at position z."""
         return -1j*np.fft.fftshift(self.omega/(2*self.n_eff*c))
     
     def _make_callable(self, var):
         """
-        Transform an input vector, array, float or callable into a z-callable.
-        The user can then provide z-dependant quantities.
+        Transform an input vector, array, float or callable into a z-callable,
+        allowing the user to provide z-dependant quantities.
         
         Note that a provided callable should have as arguments exactly at most
         'z' and 'freq', e.g. var(z, freq), var(freq, z), var(z) or var(freq).
         A bit wonky, but couldn't figure out a better way to do that. Another
         alternative would be to implement derived classes with overwritten
-        properties.
+        properties, which is not very elegant either.
         
         Note that a provided array should have first dimension coinciding with
         the frequency axis given along the refractive index data. The second
