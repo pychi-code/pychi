@@ -10,11 +10,5 @@ Welcome to pychi's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   readme_link
+   pychi
