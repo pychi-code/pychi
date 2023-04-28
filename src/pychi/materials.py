@@ -130,7 +130,8 @@ class Waveguide():
         'z' and 'freq', e.g. var(z, freq), var(freq, z), var(z) or var(freq).
         A bit wonky, but couldn't figure out a better way to do that. Another
         alternative would be to implement derived classes with overwritten
-        properties, which is not very elegant either.
+        properties, which is not very elegant either. Actually found out that
+        singledispatch from functools is probably the way to go here.
         
         Note that a provided array should have first dimension coinciding with
         the frequency axis given along the refractive index data. The second
