@@ -49,7 +49,7 @@ def wg_chi_2(z):
     return (-1)**(np.floor(z/qpm_length)%2)*const_wg_chi_2
 
 # Define breakpoints to force computation whenever the poling changes sign
-breakpoints = np.arange(wg_length//qpm_length)*qpm_length
+breakpoints = np.arange(wg_length//qpm_length)*qpm_length + 1e-10
 
 """
 Nonlinear propagation
