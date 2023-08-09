@@ -61,7 +61,7 @@ waveguide = materials.Waveguide(wg_freq, wg_n_eff, wg_chi_2, wg_chi_3,
                                 wg_a_eff, wg_length, t_pts=t_pts)
 pulse = light.Sech(waveguide, pulse_duration, pulse_energy, pulse_wavelength)
 model = models.Chi2(waveguide, pulse)
-solver = solvers.Solver(model, breakpoints=breakpoints)
+solver = solvers.Solver(model, solver='ERK4IP', breakpoints=breakpoints)
 solver.solve()
 
 
