@@ -15,9 +15,6 @@ and breakpoints forcing computation at some desired distances.
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import pandas
-from scipy.constants import c
-from scipy.io import loadmat
 
 import sys
 sys.path.append(os.getcwd() + '../../../')
