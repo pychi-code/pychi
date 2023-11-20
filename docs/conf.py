@@ -12,6 +12,11 @@
 #
 import os
 import sys
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", sphinx_rtd_theme])
 sys.path.insert(0, os.path.abspath('../src'))
 
 
