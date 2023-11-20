@@ -51,11 +51,11 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 
 # Tell Sphinx to document private methods
-autodoc_default_options = {
-    "members": True,
-    "undoc-members": True,
-    "private-members": True
-}
+#autodoc_default_options = {
+#    "members": True,
+#    "undoc-members": True,
+#    "private-members": True
+#}
 
 autodoc_mock_imports = ["matplotlib", "scipy", "numpy", "pyfftw", "numba"]
 
