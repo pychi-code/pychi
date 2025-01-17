@@ -92,7 +92,20 @@ class Light():
             return lambda field: 20*np.log10(np.abs(field) + 1e-20) - np.amax(20*np.log10(np.abs(self.spectrum[0]) + 1e-20))
         else:
             pass
-    
+
+    def add_group_delay_dispersion(self, d2):
+        """
+        Add group delay dispersion (chirp) to the light field.
+
+        Parameters
+        ----------
+        d2 : float
+            Group delay dispersion
+        """
+        field_angle = np.angle(self.field_t_in)
+        field_angle *= d2/2*self.waveguide.rel_omega**2
+        self.field_t_in = np.abs(self.field_t_in)*np.exp(1j*field_angle)
+        
     def add_shot_noise(self, seed=None):
         """
         Add shot noise to the pulse, useful for coherence study.
