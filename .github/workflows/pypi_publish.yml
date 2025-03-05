@@ -35,7 +35,8 @@ jobs:
       with:
         file: "pyproject.toml"
         key: "project.version"
-        value: ${{ steps.get_version.outputs.VERSION }}
+        #value: ${{ steps.get_version.outputs.VERSION }}
+        value: "0.0.13"
     - name: Build package
       run: python -m build
     - name: Publish package
