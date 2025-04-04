@@ -215,7 +215,7 @@ class Light():
         else:
             pass
         
-    def set_result_as_start(self):
+    def set_result_as_start(self, waveguide=None):
         """
         Set output field from propagation as initial field for a new
         propagation.
@@ -225,9 +225,11 @@ class Light():
         Light
             New Light object with final propagation result as input field.
         """
+        if waveguide is None:
+            waveguide = self.waveguide
         if self.spectrum is not None:
             field_t_in = self.waveform[-1]
-            return Light(self.waveguide, field_t_in)
+            return Light(waveguide, field_t_in)
         else:
             pass
 
