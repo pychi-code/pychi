@@ -9,6 +9,7 @@ import numba
 import numpy as np
 from scipy.constants import c
 import time as timing
+eps_0 = 8.8541878128e-12
 
 
 class Solver():
