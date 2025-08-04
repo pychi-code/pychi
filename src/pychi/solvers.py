@@ -49,6 +49,7 @@ class Solver():
         self.method_name = self._set_method_name(method)
         self.breakpoints = breakpoints
         self.stepsize_save = []
+        self.power_prefactor = eps_0*c/2/self.model.waveguide.t_pts*self.model.waveguide.delta_t
     
     def _set_method_name(self, method):
         """
@@ -348,7 +349,8 @@ class Solver():
             
             # Save spectrum
             self.spectrum[i, :] = np.fft.fftshift(self.stock_vec)\
-                *numbaexp(1j*(self.model.waveguide.betas[0] + self.model.waveguide.betas[1]*self.model.waveguide.rel_omega)*self.stock_z)
+                *numbaexp(1j*(self.model.waveguide.betas[0] + self.model.waveguide.betas[1]*self.model.waveguide.rel_omega)*self.stock_z)\
+                *np.sqrt(self.model.waveguide.eff_area*self.model.waveguide.n_eff*self.power_prefactor)
         
         # Save waveform
         print(f"{timing.perf_counter() - timer} seconds for integration.")                
