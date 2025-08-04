@@ -10,8 +10,8 @@ A Python package for simulating the propagation of optical pulses in nonlinear m
 - Cubic nonlinear interactions (triple sum-frequency generation, self-phase modulation, conjugated Kerr term)
 - Raman scattering
 - Self-steepening
-- Frequency-dependence of the nonlinear coefficients
-- z-dependence of the effective refractive index and nonlinear coefficients (permitting poling to be simulated)
+- Frequency-dependence of the nonlinear coefficients and effective area
+- z-dependence of the effective refractive index, nonlinear coefficients and effective area (permitting poling to be simulated)
 
 The package is built to be as user-friendly as possible, providing a relatively high-level interface for the user while still allowing for physically intricate simulation cases. It leverages a custom-made order 5 solver, although more classical solvers (such as the RK4IP) have also been implemented for completeness and versatility.
 
