@@ -37,6 +37,7 @@ class Light():
         """
         self.waveguide = waveguide
         self.field_t_in = field_t_in
+        self.pulse_wavelength = self._compute_pulse_wavelength()
         self.eff_area_pump = self._compute_eff_area_pump()
     
     def __add__(self, light):
@@ -93,6 +94,16 @@ class Light():
             return lambda field: 20*np.log10(np.abs(field) + 1e-20) - np.amax(20*np.log10(np.abs(self.spectrum[0]) + 1e-20))
         else:
             pass
+
+    def _compute_pulse_wavelength(self):
+        """
+        Compute the carrier wavelength of the pulse.
+        """
+        spec = np.fft.fft(self.field_t_in)
+        freq = np.fft.fftfreq(len(self.waveguide.time), self.waveguide.delta_t)
+        pw = np.sum(np.abs(spec)**2*freq)
+        pw /= np.sum(np.abs(spec)**2)
+        return c/pw
 
     def _compute_eff_area_pump(self):
         """
