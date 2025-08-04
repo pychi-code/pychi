@@ -86,7 +86,7 @@ class Waveguide():
     @property
     def chi_2(self):
         """Get the quadratic nonlinear coefficient at position z."""
-        return self._chi_2(self.z)
+        return self._chi_2(self.z)*np.sqrt(self._eff_area(0)/self._eff_area(self.z))
     
     @chi_2.setter
     def chi_2(self, chi_2):
@@ -100,7 +100,7 @@ class Waveguide():
     @property
     def chi_3(self):
         """Get the cubic nonlinear coefficient at position z."""
-        return self._chi_3(self.z)
+        return self._chi_3(self.z)*self._eff_area(0)/self._eff_area(self.z)
     
     @chi_3.setter
     def chi_3(self, chi_3):
@@ -110,6 +110,20 @@ class Waveguide():
         function.
         """
         self._chi_3 = self._make_callable(chi_3)
+        
+    @property
+    def eff_area(self):
+        """Get the effective area at position z."""
+        return self._eff_area(self.z)
+    
+    @eff_area.setter
+    def eff_area(self, eff_area):
+        """
+        Set the effective area. Change any float,
+        vector or array provided by the user into a z-callable
+        function.
+        """
+        self._eff_area = self._make_callable(eff_area)
     
     @property
     def k(self):
