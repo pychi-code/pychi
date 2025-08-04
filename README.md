@@ -45,6 +45,10 @@ The documentation is available and best viewed under
 https://pychi.readthedocs.io/en/latest/
 This documentation has been automatically generated using SPHINX, and is still a work in progress. Do not hesitate to contact us for any needed clarifications and examples.
 
+## Theory
+
+The full theoretical derivation leading to the master equation used in *pychi* is described in Appendix C of the following thesis: https://ediss.sub.uni-hamburg.de/handle/ediss/10785. 
+
 ## Example
 
 Here is a typical example of the use of pychi to simulate the propagation of a short optical pulse in a nonlinear waveguide exhibiting both cubic and quadratic nonlinearities.
