@@ -45,6 +45,11 @@ The documentation is available and best viewed under
 https://pychi.readthedocs.io/en/latest/
 This documentation has been automatically generated using SPHINX, and is still a work in progress. Do not hesitate to contact us for any needed clarifications and examples.
 
+## Implementation
+
+pychi has been developped at DESY by the Ultrafast Microphotonics group. Details about the implementation have been published at https://doi.org/10.1063/5.0135252 - if you use *pychi* for scientific publications, please cite this paper.
+
+
 ## Theory
 
 The full theoretical derivation leading to the master equation used in *pychi* is described in Appendix C of the following thesis: https://ediss.sub.uni-hamburg.de/handle/ediss/10785. 
@@ -153,9 +158,6 @@ Typical propagation results using the above script would look as follows:
 Check the examples folder for some specific cases and validation against experimental data.
 
 ## Contacts
-
-pychi has been developped at DESY by the Ultrafast Microphotonics group. If you use it for publications, please cite the associated paper
-https://doi.org/10.1063/5.0135252
 
 If you have any questions, remarks, contributions, do not hesitate to contact us at:
 pychi@desy.de
