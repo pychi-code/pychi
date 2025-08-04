@@ -245,7 +245,7 @@ class Light():
             field_t_in = self.waveform[-1]
             return Light(waveguide, field_t_in)
         else:
-            pass
+            raise ValueError('No field to set as start. Has the pulse been propagated?')
 
 
 class Sech(Light):
