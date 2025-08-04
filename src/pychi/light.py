@@ -37,6 +37,7 @@ class Light():
         """
         self.waveguide = waveguide
         self.field_t_in = field_t_in
+        self.eff_area_pump = self._compute_eff_area_pump()
     
     def __add__(self, light):
         """
@@ -93,6 +94,19 @@ class Light():
         else:
             pass
 
+    def _compute_eff_area_pump(self):
+        """
+        Compute the effective area at z=0 at the pump wavelength
+        """
+        if len(np.shape(self.waveguide.eff_area)) == 0:
+            return self.waveguide.eff_area
+        elif len(self.waveguide.eff_area) == len(self.waveguide.freq):
+            eff_area_inter = interp1d(self.waveguide.freq, self.waveguide.eff_area, kind='cubic',
+                                    bounds_error=False, fill_value='extrapolate')
+            return eff_area_inter(c/self.pulse_wavelength)
+        else:
+            raise ValueError('Invalid effective area format!')
+
     def add_group_delay_dispersion(self, d2):
         """
         Add group delay dispersion (chirp) to the light field.
@@ -121,7 +135,7 @@ class Light():
         field_angle = np.angle(self.field_t_in)
         
         e_to_n_fac = eps_0*self.waveguide.n_eff_inter(c/self.pulse_wavelength)
-        e_to_n_fac *= self.pulse_wavelength*self.waveguide.eff_area
+        e_to_n_fac *= self.pulse_wavelength*self.eff_area_pump
         e_to_n_fac *= self.waveguide.delta_t/2/h
         
         photons_per_bin = e_to_n_fac*np.abs(self.field_t_in)**2
@@ -147,7 +161,7 @@ class Light():
             # Input and output spectrum
             ax0.plot(self.freq, self.dB(self.spectrum)[0], color='b')
             ax0.plot(self.freq, self.dB(self.spectrum)[-1], color='r')
-            ax0.set_ylabel('Intensity [dB]')
+            ax0.set_ylabel('Power density [dB]')
             ax0.set_ylim(-100, 5)
             
             # Input and output pulse
@@ -261,6 +275,7 @@ class Sech(Light):
         self.pulse_wavelength = pulse_wavelength
         self.waveguide = waveguide
         self.delay = delay
+         self.eff_area_pump = self._compute_eff_area_pump()
         self.field_t_in = self._compute_field()
     
     def _compute_field(self):
@@ -275,7 +290,7 @@ class Sech(Light):
         pulse_peak_power = 0.8813736*self.pulse_energy/self.pulse_duration
         field_t_in = np.sqrt(pulse_peak_power)/np.cosh(1.7627472*(self.waveguide.time - self.delay)/self.pulse_duration)\
             *np.exp(1j*(2*np.pi*c/self.pulse_wavelength - self.waveguide.center_omega)*(self.waveguide.time - self.delay))
-        field_t_in /= np.sqrt(self.waveguide.n_eff_inter(c/self.pulse_wavelength)*eps_0*c*self.waveguide.eff_area/2)
+        field_t_in /= np.sqrt(self.waveguide.n_eff_inter(c/self.pulse_wavelength)*eps_0*c*self.eff_area_pump/2)
         return field_t_in
 
 
@@ -306,6 +321,7 @@ class Gaussian(Light):
         self.pulse_wavelength = pulse_wavelength
         self.waveguide = waveguide
         self.delay = delay
+        self.eff_area_pump = self._compute_eff_area_pump()
         self.field_t_in = self._compute_field()
     
     def _compute_field(self):
@@ -319,7 +335,7 @@ class Gaussian(Light):
         """
         amplitude = 2*self.pulse_energy*np.sqrt(8*np.log(2)/np.pi)
         amplitude /= self.waveguide.n_eff_inter(c/self.pulse_wavelength)
-        amplitude /= eps_0*c*self.pulse_duration*self.waveguide.eff_area
+        amplitude /= eps_0*c*self.pulse_duration*self.eff_area_pump
         field_t_in = np.sqrt(amplitude)*np.exp(-4*np.log(2)*(self.waveguide.time - self.delay)**2/self.pulse_duration**2)\
             *np.exp(1j*(2*np.pi*c/self.pulse_wavelength - self.waveguide.center_omega)*(self.waveguide.time - self.delay))
         return field_t_in
@@ -345,6 +361,7 @@ class Cw(Light):
         self.pulse_average_power = average_power
         self.pulse_wavelength = wavelength
         self.waveguide = waveguide
+        self.eff_area_pump = self._compute_eff_area_pump()
         self.field_t_in = self._compute_field()
         
     def _compute_field(self):
@@ -357,7 +374,7 @@ class Cw(Light):
             Analytical envelope of the electric field.
         """
         field_t_in = np.exp(1j*(2*np.pi*c/self.pulse_wavelength - self.waveguide.center_omega)*self.waveguide.time)
-        field_t_in *= np.sqrt(2*self.pulse_average_power/self.waveguide.n_eff_inter(c/self.pulse_wavelength)/eps_0/c/self.waveguide.eff_area)
+        field_t_in *= np.sqrt(2*self.pulse_average_power/self.waveguide.n_eff_inter(c/self.pulse_wavelength)/eps_0/c/self.eff_area_pump)
         return field_t_in
     
 
@@ -386,6 +403,7 @@ class Arbitrary(Light):
         self.data_field = pulse_electric_field
         self.pulse_wavelength = self._compute_center_wavelength()
         self.waveguide = waveguide
+        self.eff_area_pump = self._compute_eff_area_pump()
         self.field_t_in = self._compute_field()
     
     def _compute_center_wavelength(self):
@@ -410,6 +428,6 @@ class Arbitrary(Light):
         field_f_in = field_interp(self.waveguide.freq)
         field_t_in = np.fft.fftshift(np.fft.ifft(np.fft.ifftshift(field_f_in)))
         temp = np.sum(np.abs(field_t_in)**2)*self.waveguide.delta_t
-        field_t_in *= np.sqrt(2*self.pulse_energy/(temp*self.waveguide.n_eff_inter(c/self.pulse_wavelength)*eps_0*c*self.waveguide.eff_area))
+        field_t_in *= np.sqrt(2*self.pulse_energy/(temp*self.waveguide.n_eff_inter(c/self.pulse_wavelength)*eps_0*c*self.eff_area_pump))
         return field_t_in
         
