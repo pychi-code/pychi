@@ -275,7 +275,7 @@ class Sech(Light):
         self.pulse_wavelength = pulse_wavelength
         self.waveguide = waveguide
         self.delay = delay
-         self.eff_area_pump = self._compute_eff_area_pump()
+        self.eff_area_pump = self._compute_eff_area_pump()
         self.field_t_in = self._compute_field()
     
     def _compute_field(self):
