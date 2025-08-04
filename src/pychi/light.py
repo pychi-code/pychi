@@ -224,14 +224,14 @@ class Light():
             
             plt.subplot(222, sharey=ax0)
             plt.plot(20*np.log10(np.abs(self.spectrum[-1])) - np.amax(20*np.log10(np.abs(self.spectrum[-1]))), self.freq)
-            plt.xlabel('Intensity [dB]')
+            plt.xlabel('Power density [dB]')
             plt.xlim(5, -100)
             plt.ylim((np.amin(self.freq), np.amax(self.freq)))
             
             plt.subplot(223, sharex=ax0)
             plt.plot(self.waveguide.time, np.abs(self.waveform[-1])**2)
             plt.xlabel('Time [s]')
-            plt.ylabel('Intensity [a.u.]')
+            plt.ylabel('Power [a.u.]')
             plt.xlim((np.amin(self.waveguide.time), np.amax(self.waveguide.time)))
             plt.tight_layout()
             if savename is not None:
