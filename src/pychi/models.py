@@ -17,7 +17,7 @@ class Model():
     general utility, optimization and setup functions for the physics
     happening in the child classes.
     """
-    def __init__(self, waveguide, light):
+    def __init__(self, waveguide, light, _pyfftw_flags=('FFTW_PATIENT',)):
         """
         Construct model class. Some attributes are initialized in other methods.
 
@@ -27,10 +27,17 @@ class Model():
             Object containing the material parameters.
         light : Light
             Object containing the light parameters.
+        _pyfftw_flags : tuple of str
+            Contains the wisdom constructing method for pyFFTW. For short initialization times, but
+            long FFT computation times, use ('FFTW_MEASURE',). Otherwise, initialization is long the
+            first time the wisdom is computed but results in shorter FFT times. Default is
+            ('FFTW_PATIENT',).
         """
         self.waveguide = waveguide
         self.light = light
         self.half_pts = self.waveguide.t_pts//2
+        self.pyfftw_flags = _pyfftw_flags
+        pyfftw_load_wisdom()
         
     def _setup_aaspm(self):
         """
@@ -42,8 +49,9 @@ class Model():
         self._fft_b_aaspm = pyfftw.empty_aligned(self.spm_pad_factor*self.waveguide.t_pts, dtype='complex128')
         self._fft_c_aaspm = pyfftw.empty_aligned(self.spm_pad_factor*self.waveguide.t_pts, dtype='complex128')
         self._fft_d_aaspm = pyfftw.empty_aligned(self.spm_pad_factor*self.waveguide.t_pts, dtype='complex128')
-        self.fft_spm = pyfftw.FFTW(self._fft_a_aaspm, self._fft_b_aaspm)
-        self.ifft_spm = pyfftw.FFTW(self._fft_c_aaspm, self._fft_d_aaspm, direction='FFTW_BACKWARD')
+        self.fft_spm = pyfftw.FFTW(self._fft_a_aaspm, self._fft_b_aaspm, flags=self.pyfftw_flags)
+        self.ifft_spm = pyfftw.FFTW(self._fft_c_aaspm, self._fft_d_aaspm, direction='FFTW_BACKWARD', flags=self.pyfftw_flags)
+        pyfftw_save_wisdom()
         
         # selection arrays
         self.selection_array_spm = np.zeros(self.spm_pad_factor*self.waveguide.t_pts, dtype=bool)
@@ -70,8 +78,9 @@ class Model():
         self._fft_b_shg = pyfftw.empty_aligned(self.shg_pts_pad, dtype='complex128')
         self._fft_c_shg = pyfftw.empty_aligned(self.shg_pts_pad, dtype='complex128')
         self._fft_d_shg = pyfftw.empty_aligned(self.shg_pts_pad, dtype='complex128')
-        self.fft_shg = pyfftw.FFTW(self._fft_a_shg, self._fft_b_shg)
-        self.ifft_shg = pyfftw.FFTW(self._fft_c_shg, self._fft_d_shg, direction='FFTW_BACKWARD')
+        self.fft_shg = pyfftw.FFTW(self._fft_a_shg, self._fft_b_shg, flags=self.pyfftw_flags)
+        self.ifft_shg = pyfftw.FFTW(self._fft_c_shg, self._fft_d_shg, direction='FFTW_BACKWARD', flags=self.pyfftw_flags)
+        pyfftw_save_wisdom()
         
         # selection arrays
         self.selection_array_shg = np.zeros(self.shg_pts_pad, dtype=bool)
@@ -96,8 +105,9 @@ class Model():
         self._fft_b_thg = pyfftw.empty_aligned(self.thg_pts_pad, dtype='complex128')
         self._fft_c_thg = pyfftw.empty_aligned(self.thg_pts_pad, dtype='complex128')
         self._fft_d_thg = pyfftw.empty_aligned(self.thg_pts_pad, dtype='complex128')
-        self.fft_thg = pyfftw.FFTW(self._fft_a_thg, self._fft_b_thg)
-        self.ifft_thg = pyfftw.FFTW(self._fft_c_thg, self._fft_d_thg, direction='FFTW_BACKWARD')
+        self.fft_thg = pyfftw.FFTW(self._fft_a_thg, self._fft_b_thg, flags=self.pyfftw_flags)
+        self.ifft_thg = pyfftw.FFTW(self._fft_c_thg, self._fft_d_thg, direction='FFTW_BACKWARD', flags=self.pyfftw_flags)
+        pyfftw_save_wisdom()
         
         # selection arrays
         self.selection_array_thg = np.zeros(self.thg_pts_pad, dtype=bool)
@@ -478,7 +488,23 @@ class SpmChi2Chi3(Model):
         thg_term = self._aathg(field_f)
         shg_term = self._aash(field_f)
         return self.waveguide.rhs_prefactor*((thg_term + tot_spm)*self.waveguide.chi_3/4 + shg_term*self.waveguide.chi_2/2)
-    
+
+
+"""
+Utility functions
+"""
+### Save wisdom from pyFFTW for faster FFTS
+def pyfftw_save_wisdom():
+    np.save('wisdom', pyfftw.export_wisdom())
+
+### Load wisdom from pyFFTW for faster FFTS
+def pyfftw_load_wisdom():
+    try:
+        pyfftw.import_wisdom(np.load('wisdom.npy'))
+    except:
+        print('Warning: Could not load pyFFTW wisdom!')
+        pass
+
 
 """
 Optimized functions
