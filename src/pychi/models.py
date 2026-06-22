@@ -17,7 +17,7 @@ class Model():
     general utility, optimization and setup functions for the physics
     happening in the child classes.
     """
-    def __init__(self, waveguide, light, _pyfftw_flags=('FFTW_PATIENT',)):
+    def __init__(self, waveguide, light, _pyfftw_flags=('FFTW_MEASURE',)):
         """
         Construct model class. Some attributes are initialized in other methods.
 
@@ -31,7 +31,8 @@ class Model():
             Contains the wisdom constructing method for pyFFTW. For short initialization times, but
             long FFT computation times, use ('FFTW_MEASURE',). Otherwise, initialization is long the
             first time the wisdom is computed but results in shorter FFT times. Default is
-            ('FFTW_PATIENT',).
+            ('FFTW_MEASURE',) - but use ('FFTW_PATIENT',) for repeated simulations with identical
+            number of points.
         """
         self.waveguide = waveguide
         self.light = light
