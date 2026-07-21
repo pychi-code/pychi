@@ -170,14 +170,16 @@ class Light():
             ax3 = plt.subplot2grid((3,2), (1, 1), rowspan=2, sharex=ax1)
             
             # Input and output spectrum
-            ax0.plot(self.freq, self.dB(self.spectrum)[0], color='b')
-            ax0.plot(self.freq, self.dB(self.spectrum)[-1], color='r')
-            ax0.set_ylabel('Power density [dB]')
-            ax0.set_ylim(-100, 5)
+            20*np.log10(np.abs(field) + eps)
+            ax0.plot(self.freq, 20*np.log10(np.abs(self.spectrum[0] + 1e-20)), color='b')
+            ax0.plot(self.freq, 20*np.log10(np.abs(self.spectrum[-1] + 1e-20)), color='r')
+            ax0.set_ylabel('Energy spectral density [dBJ/Hz]')
+            ax0.set_ylim(np.amax(20*np.log10(np.abs(self.spectrum[0] + 1e-20))) - 90, np.amax(20*np.log10(np.abs(self.spectrum[0] + 1e-20))) + 10)
             
             # Input and output pulse
             ax1.plot(self.waveguide.time, np.abs(self.waveform)[-1], color='r')
             ax1.plot(self.waveguide.time, np.abs(self.waveform)[0], color='b')
+            ax1.set_ylabel('Instantaneous power [W]')
             
             # Spectrum color map
             extent = (np.amin(self.freq[self.freq>0]), np.max(self.freq), 0, self.waveguide.length)
@@ -223,15 +225,15 @@ class Light():
             plt.ylabel('Frequency [Hz]')
             
             plt.subplot(222, sharey=ax0)
-            plt.plot(20*np.log10(np.abs(self.spectrum[-1])) - np.amax(20*np.log10(np.abs(self.spectrum[-1]))), self.freq)
-            plt.xlabel('Power density [dB]')
-            plt.xlim(5, -100)
+            plt.plot(20*np.log10(np.abs(self.spectrum[-1])), self.freq)
+            plt.xlabel('Energy spectral density [dBJ/Hz]')
+            plt.xlim(np.amax(20*np.log10(np.abs(self.spectrum[-1]))) + 10, np.amax(20*np.log10(np.abs(self.spectrum[-1]))) - 90)
             plt.ylim((np.amin(self.freq), np.amax(self.freq)))
             
             plt.subplot(223, sharex=ax0)
             plt.plot(self.waveguide.time, np.abs(self.waveform[-1])**2)
             plt.xlabel('Time [s]')
-            plt.ylabel('Power [a.u.]')
+            plt.ylabel('Instantaneous power [W]')
             plt.xlim((np.amin(self.waveguide.time), np.amax(self.waveguide.time)))
             plt.tight_layout()
             if savename is not None:
