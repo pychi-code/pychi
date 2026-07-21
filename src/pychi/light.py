@@ -257,7 +257,7 @@ class Light():
         if self.spectrum is not None:
             field_t_in = self.waveform[-1]
             return Light(waveguide, field_t_in/np.sqrt(waveguide.eff_area*waveguide.n_eff\
-                                                       *eps_0*c/2/waveguide.t_pts*waveguide.delta_t))
+                                                       *eps_0*c/2))
         else:
             raise ValueError('No field to set as start. Has the pulse been propagated?')
 
