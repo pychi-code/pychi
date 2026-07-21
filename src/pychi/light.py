@@ -170,15 +170,14 @@ class Light():
             ax3 = plt.subplot2grid((3,2), (1, 1), rowspan=2, sharex=ax1)
             
             # Input and output spectrum
-            20*np.log10(np.abs(field) + eps)
             ax0.plot(self.freq, 20*np.log10(np.abs(self.spectrum[0] + 1e-20)), color='b')
             ax0.plot(self.freq, 20*np.log10(np.abs(self.spectrum[-1] + 1e-20)), color='r')
             ax0.set_ylabel('Energy spectral density [dBJ/Hz]')
             ax0.set_ylim(np.amax(20*np.log10(np.abs(self.spectrum[0] + 1e-20))) - 90, np.amax(20*np.log10(np.abs(self.spectrum[0] + 1e-20))) + 10)
             
             # Input and output pulse
-            ax1.plot(self.waveguide.time, np.abs(self.waveform)[-1], color='r')
-            ax1.plot(self.waveguide.time, np.abs(self.waveform)[0], color='b')
+            ax1.plot(self.waveguide.time, np.abs(self.waveform)[-1]**2, color='r')
+            ax1.plot(self.waveguide.time, np.abs(self.waveform)[0]**2, color='b')
             ax1.set_ylabel('Instantaneous power [W]')
             
             # Spectrum color map
@@ -190,7 +189,7 @@ class Light():
             
             # Pulse color map
             extent = (np.min(self.waveguide.time), np.max(self.waveguide.time), 0, self.waveguide.length)
-            plt_waveform = np.abs(self.waveform)
+            plt_waveform = np.abs(self.waveform)**2
             ax3.imshow(plt_waveform, extent=extent, vmin=np.amin(plt_waveform[-1]),
                         vmax=np.amax(plt_waveform), aspect='auto', origin='lower')
             ax3.set_xlabel('Time [s]')
