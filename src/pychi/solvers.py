@@ -50,7 +50,7 @@ class Solver():
         self.method_name = self._set_method_name(method)
         self.breakpoints = breakpoints
         self.stepsize_save = []
-        self.power_prefactor = eps_0*c/2/self.model.waveguide.t_pts*self.model.waveguide.delta_t
+        self.power_prefactor = eps_0*c/2*self.model.waveguide.delta_t**2
     
     def _set_method_name(self, method):
         """
@@ -355,7 +355,7 @@ class Solver():
         
         # Save waveform
         print(f"{timing.perf_counter() - timer} seconds for integration.")                
-        self.waveform = np.fft.ifft(np.fft.ifftshift(self.spectrum, axes=1), axis=1)
+        self.waveform = np.fft.ifft(np.fft.ifftshift(self.spectrum, axes=1), axis=1)/self.model.waveguide.delta_t
         self.model.light._set_propagation(self.z_save, self.model.waveguide.freq, self.spectrum, self.waveform)
 
     def plot_stepsize(self):
